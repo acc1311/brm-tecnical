@@ -1,0 +1,7 @@
+# imagini-sursă originale (procesate în images/)
+Gemini_Generated_Image_*.jpg
+
+# sistem
+Thumbs.db
+Desktop.ini
+.DS_Store
