@@ -3,7 +3,7 @@
 Site de prezentare pentru **BRM TECNICAL**, atelier de ornamente personalizate
 tăiate cu laser, din **Târgu Neamț, județ Neamț, România**.
 
-Design realizat după modelul [dardeiarna.ro](https://dardeiarna.ro/) —
+Design realizat pentru —
 coronițe și decorațiuni personalizate, cu previzualizare live.
 
 ## Ce conține
