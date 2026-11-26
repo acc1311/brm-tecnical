@@ -1,14 +1,12 @@
 /* BRM TECNICAL — js/main.js (complet)
-   Atelier 8 piese + previzualizare live + comandă cu fișiere + email/WhatsApp.
-   Prețuri mici pe piese, adaos de material proporțional cu mărimea piesei.
-   Opțional din data.js: settings.shapePrices {coronita:149, tablou:89, ...},
-   settings.courier, settings.gift. */
+   Atelier 8 piese · culori Negru / Roșu / Auriu / ALB · previzualizare live
+   comandă cu fișiere (DXF/SVG/PDF/poze) · email Gmail/Yahoo/Outlook · WhatsApp. */
 (function () {
   'use strict';
 
   var CFG = {
     email: 'brm_tecnical@yahoo.com',
-    whatsapp: '',      // ex: '40712345678' — gol = butonul nu apare
+    whatsapp: '',     // ex: '40712345678' — gol = butonul nu apare
     sendOnline: true,
     courier: 25,
     gift: 25,
@@ -20,6 +18,8 @@
   var ARC = 'M 250,690 Q 500,905 750,690';
   var LS_ORDERS = 'brm_orders', LS_CUSTOMER = 'brm_customer';
   var NS = 'http://www.w3.org/2000/svg';
+  var SHADOW = 'drop-shadow(4px 12px 16px rgba(40,22,6,.3))';
+  var SHADOW_W = 'invert(1) brightness(1.04) drop-shadow(4px 12px 18px rgba(0,0,0,.55))';
 
   function esc(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -29,6 +29,12 @@
     if (n < 1024) return n + ' B';
     if (n < 1048576) return Math.round(n / 1024) + ' KB';
     return (n / 1048576).toFixed(1) + ' MB';
+  }
+  function isWhite(c) { return c === 'alb'; }
+  function inkFor(c) {
+    return isWhite(c)
+      ? { fill: '#23282C', stroke: 'rgba(255,255,255,.6)', shadow: '0 1px 4px rgba(255,255,255,.75)' }
+      : { fill: '#FBF8F2', stroke: 'rgba(0,0,0,.45)', shadow: '0 2px 7px rgba(0,0,0,.6)' };
   }
   function svgText(s, x, y, size, maxW, fill, ls) {
     var t = String(s || '').toUpperCase().trim();
@@ -87,7 +93,7 @@
       draw: function (o, p, u) {
         return '<rect x="110" y="250" width="780" height="500" rx="20" fill="url(#' + u + 'g)"/>' +
           '<rect x="142" y="282" width="716" height="436" rx="12" fill="none" stroke="' + p.text + '" stroke-opacity=".35" stroke-width="4"/>' +
-          '<circle cx="185" cy="305" r="13" fill="' + p.dark + '"/><circle cx="815" cy="305" r="13" fill="' + p.dark + '"/>' +
+          '<circle cx="185" cy="305" r="13" fill="' + p.hole + '"/><circle cx="815" cy="305" r="13" fill="' + p.hole + '"/>' +
           svgText(o.pname, 500, 520, 108, 620, p.text, 3) + svgText(o.pcurve, 500, 625, 44, 560, p.text, 6);
       } },
     { id: 'placuta', label: 'Plăcuță firmă', ic: '▬', base: 69,
@@ -97,8 +103,8 @@
               { v: 40, label: '40 × 20 cm', mul: 1.35 }, { v: 60, label: '60 × 30 cm', mul: 1.9 }],
       draw: function (o, p, u) {
         return '<rect x="80" y="360" width="840" height="280" rx="28" fill="url(#' + u + 'g)"/>' +
-          '<circle cx="132" cy="412" r="15" fill="' + p.dark + '"/><circle cx="868" cy="412" r="15" fill="' + p.dark + '"/>' +
-          '<circle cx="132" cy="588" r="15" fill="' + p.dark + '"/><circle cx="868" cy="588" r="15" fill="' + p.dark + '"/>' +
+          '<circle cx="132" cy="412" r="15" fill="' + p.hole + '"/><circle cx="868" cy="412" r="15" fill="' + p.hole + '"/>' +
+          '<circle cx="132" cy="588" r="15" fill="' + p.hole + '"/><circle cx="868" cy="588" r="15" fill="' + p.hole + '"/>' +
           svgText(o.pname, 500, 492, 86, 620, p.text, 3) + svgText(o.pcurve, 500, 566, 36, 600, p.text, 7);
       } },
     { id: 'brad', label: 'Brad', ic: '▲', base: 79,
@@ -165,9 +171,10 @@
   ];
   function shapeById(id) { for (var i = 0; i < SHAPES.length; i++) if (SHAPES[i].id === id) return SHAPES[i]; return SHAPES[0]; }
   function paintFor(c) {
-    if (c === 'rosu') return { base: '#8F2E1B', light: '#B84A2E', dark: '#5C1C0F', text: '#FFF3E8' };
-    if (c === 'auriu') return { base: '#C9A227', light: '#EBD37E', dark: '#8A6A2C', text: '#2A2118' };
-    return { base: '#2A2E31', light: '#4C5359', dark: '#131618', text: '#FBF8F2' };
+    if (c === 'rosu') return { base: '#8F2E1B', light: '#B84A2E', dark: '#5C1C0F', hole: '#4A1609', text: '#FFF3E8' };
+    if (c === 'auriu') return { base: '#C9A227', light: '#EBD37E', dark: '#8A6A2C', hole: '#6E5320', text: '#2A2118' };
+    if (c === 'alb') return { base: '#F1EEE7', light: '#FFFFFF', dark: '#CBC4B6', hole: '#2E3438', text: '#23282C' };
+    return { base: '#2A2E31', light: '#4C5359', dark: '#131618', hole: '#0B0D0E', text: '#FBF8F2' };
   }
   function shapeSVG(id, o, uid) {
     var sh = shapeById(id);
@@ -183,7 +190,12 @@
   /* ===================== CORE ===================== */
   var CORE = {
     sizes: SHAPES[0].sizes,
-    colors: [{ v: 'negru', label: 'Negru', hex: '#1C1814' }, { v: 'rosu', label: 'Roșu', hex: '#8F2E1B' }, { v: 'auriu', label: 'Auriu', hex: '#8A6A2C' }],
+    colors: [
+      { v: 'negru', label: 'Negru', hex: '#1C1814' },
+      { v: 'rosu', label: 'Roșu', hex: '#8F2E1B' },
+      { v: 'auriu', label: 'Auriu', hex: '#8A6A2C' },
+      { v: 'alb', label: 'Alb', hex: '#FFFFFF' }
+    ],
     norm: function (s) {
       return String(s == null ? '' : s).toLowerCase().replace(/[ăâ]/g, 'a').replace(/î/g, 'i').replace(/[șş]/g, 's').replace(/[țţ]/g, 't');
     },
@@ -307,7 +319,12 @@
   var MATERIALS = (Array.isArray(S.materials) && S.materials.length ? S.materials : [
     { name: 'Oțel Carbon', color: '#3A3F44' }, { name: 'Inox', color: '#C9CED3' }, { name: 'Aluminiu', color: '#DFE3E6' },
     { name: 'Alamă', color: '#C9A227' }, { name: 'Cupru', color: '#B87333' }, { name: 'Tablă Galvanizată', color: '#8A9AA5' }]);
-  var SRC = { negru: 'images/coronita-model.png', rosu: 'images/coronita-model-rosu.png', auriu: 'images/coronita-model-auriu.png' };
+  var SRC = {
+    negru: 'images/coronita-model.png',
+    rosu: 'images/coronita-model-rosu.png',
+    auriu: 'images/coronita-model-auriu.png',
+    alb: 'images/coronita-model.png'
+  };
 
   /* ===================== STILURI ===================== */
   var CSS = '' +
@@ -323,7 +340,7 @@
   '[data-bm-reveal]{opacity:0;transform:translateY(20px);transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1)}' +
   '[data-bm-reveal].bm-in{opacity:1;transform:none}[hidden]{display:none!important}' +
   '.customizer{display:grid!important;grid-template-columns:minmax(260px,400px) 1fr;gap:26px;align-items:start}' +
-  '.at-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:1px solid var(--bm-line2);background:radial-gradient(80% 70% at 50% 25%,#FFF9EC,#EFE6D6 60%,#DCCEB6)}' +
+  '.at-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;border:1px solid var(--bm-line2);background:radial-gradient(80% 70% at 50% 25%,#FFF9EC,#EFE6D6 60%,#DCCEB6);transition:background .35s ease,border-color .35s ease}' +
   '.at-stage img.at-photo{width:100%;height:100%;object-fit:contain;padding:8px;filter:drop-shadow(4px 12px 16px rgba(40,22,6,.28))}' +
   '.at-svgbox{position:absolute;inset:0;display:none}.at-svgbox.on{display:block}' +
   '.at-svgel{width:100%;height:100%;filter:drop-shadow(4px 12px 14px rgba(40,22,6,.3))}' +
@@ -348,8 +365,9 @@
   '.at-controls input,.at-controls select{width:100%;font-family:Jost,sans-serif;font-size:15px;color:var(--bm-graphite);background:#FFFDF9;border:1px solid var(--bm-line2);border-radius:7px;padding:11px 12px;outline:none;box-sizing:border-box}' +
   '.at-controls input:focus,.at-controls select:focus{border-color:var(--bm-red);box-shadow:0 0 0 3px rgba(143,46,27,.13)}' +
   '.at-colors{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}' +
-  '.at-color{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 13px;cursor:pointer}' +
-  '.at-color i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.18)}' +
+  '.at-color{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 13px;cursor:pointer;transition:.16s}' +
+  '.at-color i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.28)}' +
+  '.at-color:hover{border-color:var(--bm-copper)}' +
   '.at-color.is-on{background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-ivory);border-color:transparent}' +
   '.at-price{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:10px;margin-bottom:12px;background:linear-gradient(135deg,rgba(201,162,39,.16),rgba(184,115,51,.16));border:1px solid var(--bm-line2)}' +
   '.at-price span{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--bm-steel);font-weight:600}' +
@@ -378,7 +396,7 @@
   '@keyframes bmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
   '.bm-grid{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}' +
   '.bm-side{position:sticky;top:0}' +
-  '.bm-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:radial-gradient(80% 70% at 50% 25%,#FFF9EC,#EFE6D6 60%,#DCCEB6);border:1px solid var(--bm-line2)}' +
+  '.bm-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;background:radial-gradient(80% 70% at 50% 25%,#FFF9EC,#EFE6D6 60%,#DCCEB6);border:1px solid var(--bm-line2);transition:background .35s ease,border-color .35s ease}' +
   '.bm-stage img{width:100%;height:100%;object-fit:contain;padding:8px;filter:drop-shadow(4px 12px 16px rgba(40,22,6,.28))}' +
   '.bm-svgbox{position:absolute;inset:0;display:none}.bm-svgbox.on{display:block}' +
   '.bm-pv{position:absolute;right:10px;top:10px;z-index:2;font-family:Jost,sans-serif;font-size:12px;font-weight:600;background:rgba(27,31,35,.85);color:var(--bm-ivory);border:1px solid rgba(201,162,39,.5);border-radius:999px;padding:7px 12px;cursor:pointer}' +
@@ -387,7 +405,12 @@
   '.bm-curve{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}' +
   '.bm-curve text{font-family:"Saira Stencil One",Jost,sans-serif;letter-spacing:.06em;fill:var(--bm-ivory);paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:8px;stroke-linejoin:round}' +
   '.bm-metal{position:absolute;left:10px;bottom:10px;display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;background:rgba(27,31,35,.82);color:var(--bm-ivory);padding:5px 10px;border-radius:999px}' +
-  '.bm-metal i{width:10px;height:10px;border-radius:50%;display:block}' +
+  '.bm-metal i{width:10px;height:10px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(255,255,255,.4)}' +
+  '.at-stage.is-white,.bm-stage.is-white{background:radial-gradient(80% 70% at 50% 25%,#565E66,#2E3438 60%,#15181B);border-color:#4A5157}' +
+  '.is-white .at-tag,.is-white .bm-metal{background:rgba(251,248,242,.94);color:#1B1F23}' +
+  '.is-white .bm-metal i{box-shadow:0 0 0 1px rgba(0,0,0,.35)}' +
+  '.is-white .bm-pv{background:rgba(251,248,242,.94);color:#1B1F23;border-color:rgba(201,162,39,.65)}' +
+  '.is-white .bm-pv:hover{background:var(--bm-brass);color:#1B1F23}' +
   '.bm-summary{margin-top:14px;background:#fff;border:1px solid var(--bm-line);border-radius:12px;padding:14px}' +
   '.bm-summary h3{font-family:"Cormorant Garamond",serif;font-size:22px;font-weight:600;margin:0 0 4px;line-height:1.2}' +
   '.bm-badge{font-size:12px;color:var(--bm-warn);font-weight:600;margin:0 0 10px}' +
@@ -410,8 +433,9 @@
   '.bm-dialog input[aria-invalid="true"]{border-color:var(--bm-danger);box-shadow:0 0 0 3px rgba(155,28,28,.12)}' +
   '.bm-err{font-size:12px;color:var(--bm-danger);margin:8px 0 0}' +
   '.bm-chips{display:flex;gap:8px;flex-wrap:wrap}' +
-  '.bm-chip{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 13px;cursor:pointer}' +
-  '.bm-chip i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.18)}' +
+  '.bm-chip{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 13px;cursor:pointer;transition:.16s}' +
+  '.bm-chip i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.28)}' +
+  '.bm-chip:hover{border-color:var(--bm-copper)}' +
   '.bm-chip.is-on{background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-ivory);border-color:transparent}' +
   '.bm-step{display:flex;align-items:center;border:1px solid var(--bm-line2);border-radius:7px;overflow:hidden;background:#FFFDF9}' +
   '.bm-step button{width:44px;height:44px;border:0;background:var(--bm-sand);color:var(--bm-graphite);font-size:20px;cursor:pointer}' +
@@ -671,21 +695,28 @@
     function atRender() {
       var sh = shapeById(P.shape);
       var o = { pname: P.t1 || sh.t1.def, pcurve: P.t2 || sh.t2.def, color: P.color };
-      var photo = $('atPhoto'), box = $('atSvg'), banner = $('atBanner'), curve = $('atCurve'), csvg = $('atCurveSvg');
+      var stage = $('atStage'), photo = $('atPhoto'), box = $('atSvg'), banner = $('atBanner'), curve = $('atCurve'), csvg = $('atCurveSvg');
+      var ink = inkFor(P.color);
+      stage.classList.toggle('is-white', isWhite(P.color));
       if (sh.photo) {
         box.classList.remove('on'); box.innerHTML = '';
         photo.hidden = false;
         var src = SRC[P.color] || SRC.negru;
         if (photo.getAttribute('src') !== src) photo.setAttribute('src', src);
-        var w = $('atStage').clientWidth || 320;
+        photo.style.filter = isWhite(P.color) ? SHADOW_W : SHADOW;
+        var w = stage.clientWidth || 320;
         var t = String(o.pname).toUpperCase();
         banner.style.visibility = t ? 'visible' : 'hidden';
         banner.textContent = t;
+        banner.style.color = ink.fill;
+        banner.style.textShadow = ink.shadow;
         var size = Math.max(11, w * 0.072), guard = 0;
         banner.style.fontSize = size + 'px';
         while (banner.scrollWidth > banner.clientWidth && size > 9 && guard < 60) { size -= 1; banner.style.fontSize = size + 'px'; guard++; }
         var tp = curve.querySelector('textPath');
         if (tp) tp.textContent = String(o.pcurve).toUpperCase();
+        curve.style.fill = ink.fill;
+        curve.style.stroke = ink.stroke;
         csvg.style.visibility = 'visible';
         fitCurveExact(curve, $('atArc'), 46);
       } else {
@@ -697,7 +728,7 @@
       if (!sz) sz = sh.sizes[0];
       atMats();
       text('atPrice', CORE.money(sh.base * sz.mul + CORE.matAddFor(sh.base, sz.mul, P.material)));
-      text('atTag', sh.label + ' · ' + sz.label + ' · ' + P.material);
+      text('atTag', sh.label + ' · ' + sz.label + ' · ' + CORE.colorBy(P.color).label);
       Array.prototype.forEach.call(document.querySelectorAll('.at-type'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-sh') === P.shape); });
       Array.prototype.forEach.call(document.querySelectorAll('.at-color'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-c') === P.color); });
     }
@@ -963,12 +994,15 @@
     var stage = $('bmStage'), banner = $('bmBanner'), ct = $('bmCurveText');
     if (!stage) return;
     var live = O.personalizable && O.preview && (!O.shape || O.shape === 'coronita');
+    var ink = inkFor(O.color);
     var w = stage.clientWidth || 300;
     if (banner) {
       if (!live || !String(O.pname || '').trim()) banner.style.visibility = 'hidden';
       else {
         banner.style.visibility = 'visible';
         banner.textContent = String(O.pname).toUpperCase();
+        banner.style.color = ink.fill;
+        banner.style.textShadow = ink.shadow;
         var size = Math.max(11, w * 0.072), guard = 0;
         banner.style.fontSize = size + 'px';
         while (banner.scrollWidth > banner.clientWidth && size > 9 && guard < 60) { size -= 1; banner.style.fontSize = size + 'px'; guard++; }
@@ -977,6 +1011,8 @@
     if (ct) {
       var tp = ct.querySelector('textPath');
       if (tp) tp.textContent = live ? String(O.pcurve || '').toUpperCase() : '';
+      ct.style.fill = ink.fill;
+      ct.style.stroke = ink.stroke;
       if (!live) ct.style.visibility = 'hidden';
       else fitCurveExact(ct, $('bmCurvePath'), 46);
     }
@@ -988,6 +1024,7 @@
     var lines = [['Piesă × ' + O.qty, CORE.money(O.base * CORE.sizeBy(O, O.size).mul * O.qty)]];
     if (p.mat) lines.push([O.material, '+' + CORE.money(p.mat * O.qty)]);
     if (O.gift) lines.push(['Ambalaj cadou', '+' + CORE.money(CFG.gift * O.qty)]);
+    lines.push(['Culoare', CORE.colorBy(O.color).label]);
     lines.push(['Livrare', O.delivery === 'curier' ? '+' + CORE.money(CFG.courier) : 'ridicare atelier']);
     if (FILES.length) lines.push(['Fișiere', FILES.length + ' atașate']);
     var ul = $('bmLines');
@@ -999,9 +1036,12 @@
       for (var i = 0; i < MATERIALS.length; i++) if (MATERIALS[i].name === O.material) mat = MATERIALS[i];
       var dot = mt.querySelector('i'), lbl = mt.querySelector('span');
       if (dot) dot.style.background = (mat && mat.color) || '#3A3F44';
-      if (lbl) lbl.textContent = O.material + ' · ' + CORE.sizeBy(O, O.size).label;
+      if (lbl) lbl.textContent = CORE.colorBy(O.color).label + ' · ' + CORE.sizeBy(O, O.size).label;
     }
-    var isSvg = !!(O.shape && O.shape !== 'coronita'), box = $('bmSvg'), im = $('bmImg'), pvb = $('bmPvBtn');
+    var isSvg = !!(O.shape && O.shape !== 'coronita');
+    var usingBlank = !!(O.personalizable && O.preview);
+    var box = $('bmSvg'), im = $('bmImg'), pvb = $('bmPvBtn'), stage = $('bmStage');
+    if (stage) stage.classList.toggle('is-white', isWhite(O.color) && (isSvg || usingBlank));
     if (isSvg) {
       if (im) im.hidden = true;
       if (box) { box.classList.add('on'); box.innerHTML = shapeSVG(O.shape, O, 'bm'); }
@@ -1010,8 +1050,9 @@
       if (box) { box.classList.remove('on'); box.innerHTML = ''; }
       if (im) {
         im.hidden = false;
-        var src = (O.personalizable && O.preview) ? (SRC[O.color] || SRC.negru) : (O.photo || SRC.negru);
+        var src = usingBlank ? (SRC[O.color] || SRC.negru) : (O.photo || SRC.negru);
         if (im.getAttribute('src') !== src) { imgFail = false; im.setAttribute('src', src); }
+        im.style.filter = (usingBlank && isWhite(O.color)) ? SHADOW_W : SHADOW;
         im.setAttribute('alt', O.title);
       }
       if (pvb) { pvb.hidden = !O.personalizable; pvb.textContent = O.preview ? 'Foto modelului' : 'Previzualizare text'; }
