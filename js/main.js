@@ -8,7 +8,7 @@
 
   /* ===================== CONFIG ===================== */
   var CFG = {
-    email: 'brm_tecnical@yahoo.com',
+    email: 'brm.laser.veronese@gmail.com',
     whatsapp: '',          // ex: '40712345678' (fără +, fără spații). Gol = butonul nu apare.
     sendOnline: true,      // trimitere directă pe email prin FormSubmit (gratuit, fără cont)
     courier: 25,
