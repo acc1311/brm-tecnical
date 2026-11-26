@@ -14,6 +14,43 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Jost:wght@400;500;600&family=Saira+Stencil+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<style>
+/* --- linkuri legale + badge ANPC + notificare stocare locală --- */
+.foot-links{border-top:1px solid var(--line,#E6DAC4);background:rgba(244,238,228,.55)}
+.foot-links-in{max-width:1180px;margin:0 auto;padding:20px 24px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center}
+.foot-links-in a{font-family:'Jost',sans-serif;font-size:13.5px;font-weight:500;color:#3A3F44;text-decoration:none;
+  border-bottom:1px solid transparent;padding-bottom:2px;transition:.16s}
+.foot-links-in a:hover{color:#8F2E1B;border-bottom-color:#B87333}
+.foot-badges{max-width:1180px;margin:0 auto;padding:0 24px 22px;display:flex;gap:12px;flex-wrap:wrap}
+.badge-anpc{display:flex;flex-direction:column;gap:3px;text-decoration:none;flex:1 1 260px;max-width:340px;
+  background:linear-gradient(135deg,#3A3F44,#1B1F23);border:1px solid rgba(201,162,39,.5);border-radius:10px;
+  padding:12px 15px;color:#FBF8F2;transition:.18s}
+.badge-anpc:hover{border-color:#C9A227;transform:translateY(-2px)}
+.badge-anpc b{font-family:'Saira Stencil One','Jost',sans-serif;font-size:15.5px;letter-spacing:.05em;color:#C9A227}
+.badge-anpc span{font-size:11.5px;line-height:1.4;opacity:.92;font-family:'Jost',sans-serif}
+#ckBar{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147480000;display:none;
+  max-width:940px;margin:0 auto;background:linear-gradient(135deg,#2E3438,#1B1F23);color:#FBF8F2;
+  border:1px solid rgba(201,162,39,.45);border-radius:12px;padding:15px 18px;
+  box-shadow:0 22px 50px rgba(0,0,0,.42);font-family:'Jost',sans-serif}
+#ckBar.on{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+#ckBar p{margin:0;font-size:13.5px;line-height:1.55;flex:1 1 320px}
+#ckBar a{color:#C9A227}
+#ckBar .ck-b{display:flex;gap:9px;flex-wrap:wrap}
+#ckBar button,#ckBar .ck-l{font-family:'Jost',sans-serif;font-size:13.5px;font-weight:600;border-radius:7px;
+  padding:11px 17px;cursor:pointer;text-decoration:none;border:1px solid transparent;line-height:1}
+#ckBar button{background:linear-gradient(135deg,#C9A227,#B87333);color:#1B1F23}
+#ckBar button:hover{filter:brightness(1.07)}
+#ckBar .ck-l{background:transparent;color:#FBF8F2;border-color:rgba(251,248,242,.35)}
+#ckBar .ck-l:hover{border-color:#C9A227;color:#C9A227}
+@media(max-width:640px){
+  .foot-links-in{padding:16px;gap:8px 16px}
+  .foot-badges{padding:0 16px 18px}
+  #ckBar{left:10px;right:10px;bottom:10px;padding:13px 14px}
+  #ckBar .ck-b{width:100%}
+  #ckBar button,#ckBar .ck-l{flex:1 1 45%;text-align:center}
+}
+@media print{#ckBar,.foot-badges{display:none!important}}
+</style>
 </head>
 <body>
 
@@ -57,7 +94,7 @@
       <p class="lead" id="heroLead">Coronițe, tablouri, plăci și decorațiuni din metal, cu numele tău.</p>
 
       <div class="hero-price">
-        <span class="price" id="priceFrom">de la 169 lei</span>
+        <span class="price" id="priceFrom">de la 49 lei</span>
         <span class="price-note" id="priceNote">Personalizare inclusă · Livrare în toată România</span>
       </div>
 
@@ -80,7 +117,7 @@
         </div>
 
         <form class="controls" id="controls" onsubmit="return false;">
-          <h2 class="ctl-title" id="customTitle">Fă-ți <em>ornamentul</em></h2>
+          <h2 class="ctl-title" id="customTitle">Fă-ți <em>piesa</em></h2>
           <p class="ctl-note" id="customNote">Scriem numele împreună înainte să tăiem. Nu plătești acum — îți trimitem întâi proiectul.</p>
 
           <label class="fld">
@@ -99,10 +136,11 @@
               <button type="button" class="chip is-on" data-color="negru" aria-pressed="true"><i style="background:#1C1814"></i>Negru</button>
               <button type="button" class="chip" data-color="rosu" aria-pressed="false"><i style="background:#8F2E1B"></i>Roșu</button>
               <button type="button" class="chip" data-color="auriu" aria-pressed="false"><i style="background:#8A6A2C"></i>Auriu</button>
+              <button type="button" class="chip" data-color="alb" aria-pressed="false"><i style="background:#FFFFFF;box-shadow:0 0 0 1px rgba(0,0,0,.28)"></i>Alb</button>
             </div>
           </div>
 
-          <a class="btn" id="orderCustom" href="mailto:brm_tecnical@yahoo.com">Vreau acest ornament →</a>
+          <a class="btn" id="orderCustom" href="mailto:brm_tecnical@yahoo.com" data-order="custom">Vreau acest ornament →</a>
           <p class="ctl-legal" id="customLegal">Nu plătești acum. Îți trimitem întâi proiectul, apoi confirmi comanda.</p>
         </form>
       </div>
@@ -248,14 +286,70 @@
       <span id="footCity">Târgu Neamț</span>
       <span id="footCounty">Județ Neamț, România</span>
     </div>
+    <div class="foot-col">
+      <h4>Informații legale</h4>
+      <a href="legal.html#termeni">Termeni și condiții</a>
+      <a href="legal.html#livrare">Livrare și retur</a>
+      <a href="legal.html#confidentialitate">Politica de confidențialitate</a>
+      <a href="legal.html#cookies">Politica de cookies</a>
+    </div>
   </div>
+
+  <div class="foot-links">
+    <div class="foot-links-in">
+      <a href="legal.html#termeni">Termeni și condiții</a>
+      <a href="legal.html#livrare">Livrare și retur</a>
+      <a href="legal.html#confidentialitate">Politica de confidențialitate</a>
+      <a href="legal.html#cookies">Politica de cookies</a>
+      <a href="legal.html#anpc">ANPC – Soluționarea alternativă a litigiilor</a>
+      <a href="legal.html#sol">Soluționarea online a litigiilor</a>
+    </div>
+    <div class="foot-badges">
+      <a class="badge-anpc" href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener">
+        <b>ANPC · SAL</b>
+        <span>Soluționarea alternativă a litigiilor</span>
+      </a>
+      <a class="badge-anpc" href="https://anpc.ro/" target="_blank" rel="noopener">
+        <b>ANPC</b>
+        <span>Protecția Consumatorilor · sesizări</span>
+      </a>
+      <a class="badge-anpc" href="legal.html#sol">
+        <b>SOLUȚIONARE ONLINE</b>
+        <span>Informare ODR · căi disponibile</span>
+      </a>
+    </div>
+  </div>
+
   <div class="foot-legal">
     <span>© <span id="year">2026</span> BRM TECNICAL · Târgu Neamț, județ Neamț, România</span>
     <a href="mailto:brm_tecnical@yahoo.com" id="footMail2">brm_tecnical@yahoo.com</a>
   </div>
 </footer>
 
-   <script>document.write('<script src="data.js?v='+Date.now()+'"><\/script>');</script>
+<!-- notificare stocare locală -->
+<div id="ckBar" role="region" aria-label="Informare cookies">
+  <p>Folosim doar stocare locală strict necesară, ca să reținem comenzile și datele de livrare pe acest dispozitiv. Nu folosim cookies de analiză sau publicitate. <a href="legal.html#cookies">Politica de cookies</a></p>
+  <div class="ck-b">
+    <button type="button" id="ckOk">Am înțeles</button>
+    <a class="ck-l" href="legal.html#confidentialitate">Confidențialitate</a>
+  </div>
+</div>
+
+<script src="data.js"></script>
 <script src="js/main.js"></script>
+<script>
+(function () {
+  'use strict';
+  var K = 'brm_cookie_consent', bar = document.getElementById('ckBar'), ok = document.getElementById('ckOk');
+  if (!bar) return;
+  var seen = null;
+  try { seen = localStorage.getItem(K); } catch (e) { seen = '1'; }
+  if (!seen) setTimeout(function () { bar.classList.add('on'); }, 1200);
+  if (ok) ok.addEventListener('click', function () {
+    try { localStorage.setItem(K, JSON.stringify { } ); } catch (e) {}
+    bar.classList.remove('on');
+  });
+})();
+</script>
 </body>
 </html>
