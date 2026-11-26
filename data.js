@@ -1,4 +1,4 @@
-/* BRM TECNICAL — publicat din admin (2026-11-26T10:51:40.438Z) */
+/* BRM TECNICAL — publicat din admin (2026-11-26T10:56:23.774Z) */
 window.BRM_DEFAULT = {
   "settings": {
     "email": "brm_tecnical@yahoo.com",
@@ -202,7 +202,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p01",
       "name": "Coronită cu numele familiei",
-      "price": 249,
+      "price": 109,
       "cat": "personalizate",
       "badge": "Personalizat · 5–7 zile",
       "img": "images/coronita-model.jpg"
@@ -210,7 +210,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p02",
       "name": "Coronită cu banner de nume",
-      "price": 249,
+      "price": 149,
       "cat": "personalizate",
       "badge": "Personalizat · 5–7 zile",
       "img": "images/coronita-nume-banner.jpg"
@@ -218,7 +218,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p03",
       "name": "Coroniță logo „BRM TECNICAL”",
-      "price": 299,
+      "price": 149,
       "cat": "personalizate",
       "badge": "Logo firmă · 5–7 zile",
       "img": "images/brm-coronita-ro.jpg"
@@ -226,7 +226,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p04",
       "name": "Coroniță logo – ediția italiană",
-      "price": 299,
+      "price": 149,
       "cat": "personalizate italia",
       "badge": "Logo firmă · 5–7 zile",
       "img": "images/brm-coronita-it.jpg"
@@ -234,7 +234,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p05",
       "name": "Brad cu spiriduși",
-      "price": 179,
+      "price": 108,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/brad-spiridusi.jpg"
@@ -242,7 +242,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p06",
       "name": "Brad spirală cu stele",
-      "price": 169,
+      "price": 99,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/brad-spirala.jpg"
@@ -250,7 +250,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p07",
       "name": "Tablou „Christmas Blessings”",
-      "price": 199,
+      "price": 129,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/christmas-blessings.jpg"
@@ -258,7 +258,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p08",
       "name": "Cățel cu brad și cadouri",
-      "price": 189,
+      "price": 129,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/catel-craciun.jpg"
@@ -266,7 +266,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p09",
       "name": "Sanie cu cadouri",
-      "price": 179,
+      "price": 109,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/sanie-cadouri.jpg"
@@ -274,7 +274,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p10",
       "name": "Sfânta Familie – Nașterea Domnului",
-      "price": 219,
+      "price": 119,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/nasterea-domnului.jpg"
@@ -282,7 +282,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p11",
       "name": "Clopote în coroniță",
-      "price": 179,
+      "price": 100,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/clopote-zapada.jpg"
@@ -290,7 +290,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p12",
       "name": "Pisică în căciulă de Moș Crăciun",
-      "price": 189,
+      "price": 109,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/pisica-santa.jpg"
@@ -298,7 +298,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p13",
       "name": "Cățel și pisică – coroniță",
-      "price": 199,
+      "price": 109,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/catel-pisica.jpg"
@@ -306,7 +306,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p14",
       "name": "Clopote ornamentale cu fundă",
-      "price": 169,
+      "price": 119,
       "cat": "craciun",
       "badge": "În stoc · 3–5 zile",
       "img": "images/clopote-fundita.jpg"
@@ -314,7 +314,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p15",
       "name": "„Buon Natale” – coroniță",
-      "price": 189,
+      "price": 119,
       "cat": "craciun italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/buon-natale.jpg"
@@ -322,7 +322,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p16",
       "name": "„Paște Fericit” – coroniță",
-      "price": 199,
+      "price": 119,
       "cat": "paste",
       "badge": "În stoc · 3–5 zile",
       "img": "images/paste-fericit.jpg"
@@ -330,7 +330,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p17",
       "name": "Paște Fericit – iepuraș & coș",
-      "price": 199,
+      "price": 119,
       "cat": "paste",
       "badge": "În stoc · 3–5 zile",
       "img": "images/paste-iepuras.jpg"
@@ -338,7 +338,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p18",
       "name": "„Buona Pasqua” – coroniță",
-      "price": 189,
+      "price": 119,
       "cat": "paste italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/buona-pasqua.jpg"
@@ -346,7 +346,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p19",
       "name": "8 Martie – La mulți ani, mamă!",
-      "price": 199,
+      "price": 119,
       "cat": "primavara",
       "badge": "În stoc · 3–5 zile",
       "img": "images/8-martie-mama.jpg"
@@ -354,7 +354,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p20",
       "name": "„Buona Festa della Mamma”",
-      "price": 189,
+      "price": 129,
       "cat": "primavara italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/mamma.jpg"
@@ -362,7 +362,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p21",
       "name": "1 Martie – Primăvară",
-      "price": 169,
+      "price": 119,
       "cat": "primavara",
       "badge": "În stoc · 3–5 zile",
       "img": "images/1-martie-primavara.jpg"
@@ -370,7 +370,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p22",
       "name": "1 Iunie – Ziua Copilului",
-      "price": 189,
+      "price": 119,
       "cat": "evenimente",
       "badge": "În stoc · 3–5 zile",
       "img": "images/1-iunie.jpg"
@@ -378,7 +378,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p23",
       "name": "1 Decembrie – Ziua Națională",
-      "price": 189,
+      "price": 119,
       "cat": "evenimente",
       "badge": "În stoc · 3–5 zile",
       "img": "images/1-decembrie.jpg"
@@ -386,7 +386,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p24",
       "name": "19 Martie – „Buona Festa del Papà”",
-      "price": 189,
+      "price": 119,
       "cat": "italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/papa.jpg"
@@ -394,7 +394,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p25",
       "name": "25 Aprile – „Festa della Liberazione”",
-      "price": 179,
+      "price": 119,
       "cat": "italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/liberazione.jpg"
@@ -402,7 +402,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p26",
       "name": "6 Gennaio – „Buona Epifania”",
-      "price": 179,
+      "price": 119,
       "cat": "italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/epifania.jpg"
@@ -410,7 +410,7 @@ window.BRM_DEFAULT = {
     {
       "id": "p27",
       "name": "2 Giugno – „Festa della Repubblica”",
-      "price": 179,
+      "price": 119,
       "cat": "italia",
       "badge": "În stoc · 3–5 zile",
       "img": "images/festa-repubblica.jpg"
