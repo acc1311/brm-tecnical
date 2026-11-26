@@ -1,10 +1,9 @@
-/* BRM TECNICAL — panou admin (static, localStorage) */
+/* BRM TECNICAL — panou admin (static, localStorage + publicare online pe GitHub) */
 (function () {
   'use strict';
 
   var LS_DATA = 'brm_data';
   var LS_HASH = 'brm_admin_hash';
-  var DEFAULT_HASH = null; /* calculat din 'brm2026' la prima rulare */
 
   function $(id) { return document.getElementById(id); }
 
@@ -54,7 +53,7 @@
       localStorage.setItem(LS_DATA, JSON.stringify(d));
       return true;
     } catch (e) {
-      alert('Nu am putut salva: spațiul de stocare al browserului e plin (probabil din cauza pozelor încărcate). Șterge câteva poze sau exportă data.js.');
+      alert('Nu am putut salva: spațiul de stocare al browserului e plin (probabil din cauza pozelor încărcate). Publică online sau șterge câteva poze.');
       return false;
     }
   }
@@ -67,6 +66,7 @@
     fillSettings();
     renderProducts();
     updatePreviewPane();
+    showLastPublish();
   }
   function showLogin() {
     $('loginView').hidden = false;
@@ -137,7 +137,7 @@
 
   $('btnSaveSettings').addEventListener('click', function () {
     collectSettings();
-    if (saveData(DATA)) toast('Setările salvate. Se văd imediat pe site.');
+    if (saveData(DATA)) toast('Setările salvate local. Apasă „Publică online” ca să apară pentru toți.');
     updatePreviewPane();
   });
 
@@ -199,11 +199,6 @@
       var k = el.getAttribute('data-k');
       if (k === 'price') p.price = +el.value || 0;
       else if (k === 'cat0') {
-        /* păstrează și eventuale alte categorii secundare */
-        var others = (p.cat || '').split(/\s+/).filter(function (c) {
-          return c && CATS.some(function (x) { return x[0] === c; }) && c !== el.value;
-        });
-        /* elimină categoria principală veche din lista de filtre */
         p.cat = [el.value].concat(
           (p.cat || '').split(/\s+/).filter(function (c) {
             if (!c || c === el.value) return false;
@@ -274,17 +269,10 @@
         cv.width = cw; cv.height = ch;
         cv.getContext('2d').drawImage(im, 0, 0, cw, ch);
         var dataUrl = cv.toDataURL('image/jpeg', 0.85);
-        /* avertizare cotă */
-        var used = 0;
-        try { used = (localStorage.getItem(LS_DATA) || '').length + dataUrl.length; } catch (e) { }
-        if (used > 4.5 * 1024 * 1024 && !confirm('Atenție: browserul are limită ~5 MB pentru localStorage. Continui?')) {
-          input.value = '';
-          return;
-        }
         DATA.products[i].img = dataUrl;
         if (saveData(DATA)) {
           renderProducts();
-          toast('Poză încărcată (max 1000px, JPEG).');
+          toast('Poză încărcată. La „Publică online” urcă automat în images/.');
         }
       };
       im.src = ev.target.result;
@@ -304,15 +292,136 @@
     });
     saveData(DATA);
     renderProducts();
-    toast('Produs adăugat. Editează câmpurile, apoi Salvează.');
+    toast('Produs adăugat. Editează câmpurile, apoi Publică online.');
   });
 
   $('btnSaveProd').addEventListener('click', function () {
     collectAllProducts();
-    if (saveData(DATA)) toast('Produsele salvate.');
+    if (saveData(DATA)) toast('Produsele salvate local.');
   });
 
-  /* ---------- export / import data.js ---------- */
+  /* ==========================================================
+     PUBLICARE ONLINE PE GITHUB (gratuit, fără re-upload manual)
+     ========================================================== */
+  var GH = { user: 'acc1311', repo: 'brm-tecnical', branch: 'main' };
+  var LS_TOKEN = 'brm_gh_token';
+  var LS_PUB = 'brm_last_publish';
+
+  function ghToken(ask) {
+    var t = localStorage.getItem(LS_TOKEN);
+    if (!t && ask) {
+      t = prompt('Lipește token-ul GitHub (fine-grained, Contents: Read and write):');
+      if (t) { t = t.trim(); localStorage.setItem(LS_TOKEN, t); }
+    }
+    return t;
+  }
+  function b64(bytes) {
+    var s = '', step = 0x8000;
+    for (var i = 0; i < bytes.length; i += step) {
+      s += String.fromCharCode.apply(null, bytes.subarray(i, i + step));
+    }
+    return btoa(s);
+  }
+  function b64text(str) { return b64(new TextEncoder().encode(str)); }
+
+  function ghApi(path, method, body) {
+    return fetch('https://api.github.com/repos/' + GH.user + '/' + GH.repo + '/contents/' + path, {
+      method: method || 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + ghToken(true),
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: body ? JSON.stringify(body) : undefined
+    }).then(function (r) {
+      if (r.status === 404) return null;
+      if (!r.ok) return r.text().then(function (t) { throw new Error(r.status + ' ' + t); });
+      return r.json();
+    });
+  }
+
+  function ghPut(path, contentBase64, message, retry) {
+    return ghApi(path + '?ref=' + GH.branch).then(function (cur) {
+      var body = { message: message, content: contentBase64, branch: GH.branch };
+      if (cur && cur.sha) body.sha = cur.sha;
+      return ghApi(path, 'PUT', body).catch(function (e) {
+        if (!retry && /^(409|422)/.test(e.message)) return ghPut(path, contentBase64, message, true);
+        throw e;
+      });
+    });
+  }
+
+  function setPubState(on) {
+    var b = $('btnPublish');
+    if (!b) return;
+    b.disabled = on;
+    b.style.opacity = on ? '.6' : '';
+    b.textContent = on ? '⏳ Se publică…' : '☁ Publică online';
+  }
+  function showLastPublish() {
+    var el = $('pubStatus');
+    if (!el) return;
+    var t = localStorage.getItem(LS_PUB);
+    el.textContent = t ? ('Ultima publicare: ' + t) : 'Nicio publicare online încă.';
+  }
+
+  function publishOnline() {
+    collectSettings();
+    collectAllProducts();
+    saveData(DATA);
+    if (!ghToken(true)) { toast('Fără token nu pot publica.'); return; }
+    setPubState(true);
+    toast('Se publică pe GitHub…');
+
+    /* 1) pozele încărcate în browser (data:...) devin fișiere reale în images/ */
+    var jobs = Promise.resolve();
+    DATA.products.forEach(function (p) {
+      if ((p.img || '').indexOf('data:') === 0) {
+        jobs = jobs.then(function () {
+          var name = 'images/p-' + (p.id || Date.now().toString(36)) + '.jpg';
+          var raw = atob(p.img.split(',')[1]);
+          var bytes = new Uint8Array(raw.length);
+          for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+          return ghPut(name, b64(bytes), 'Admin: poza ' + name).then(function () { p.img = name; });
+        });
+      }
+    });
+
+    /* 2) data.js — un singur fișier modificat, GitHub Pages republică singur */
+    jobs.then(function () {
+      var content = '/* BRM TECNICAL — publicat din admin (' + new Date().toISOString() + ') */\n' +
+        'window.BRM_DEFAULT = ' + JSON.stringify(DATA, null, 2) + ';\n';
+      return ghPut('data.js', b64text(content), 'Admin: actualizare continut');
+    }).then(function () {
+      saveData(DATA);
+      renderProducts();
+      localStorage.setItem(LS_PUB, new Date().toLocaleString('ro-RO'));
+      showLastPublish();
+      toast('Publicat! Site-ul se actualizează în ~1 minut.');
+    }).catch(function (e) {
+      if (/^401/.test(e.message)) {
+        localStorage.removeItem(LS_TOKEN);
+        alert('Token invalid sau expirat. Apasă „🔑 Token GitHub” și pune unul nou.');
+      } else if (/^403|^404/.test(e.message)) {
+        alert('Acces refuzat. Verifică token-ul: fine-grained, repo „brm-tecnical”, Contents: Read and write.\n\n' + e.message);
+      } else {
+        alert('Eroare la publicare: ' + e.message);
+      }
+    }).then(function () { setPubState(false); });
+  }
+
+  var btnPub = $('btnPublish');
+  if (btnPub) btnPub.addEventListener('click', publishOnline);
+
+  var btnTok = $('btnToken');
+  if (btnTok) btnTok.addEventListener('click', function () {
+    var t = prompt('Token GitHub nou (lasă gol ca să ștergi token-ul salvat):', '');
+    if (t === null) return;
+    if (t.trim()) localStorage.setItem(LS_TOKEN, t.trim()); else localStorage.removeItem(LS_TOKEN);
+    toast('Token actualizat.');
+  });
+
+  /* ---------- export / import data.js (backup manual) ---------- */
   $('btnExport').addEventListener('click', function () {
     collectSettings();
     collectAllProducts();
@@ -326,7 +435,7 @@
     document.body.appendChild(a);
     a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
-    toast('data.js descărcat — înlocuiește-l în repo și commit.');
+    toast('data.js descărcat (backup).');
   });
 
   $('importFile').addEventListener('change', function (e) {
@@ -336,7 +445,6 @@
     r.onload = function () {
       try {
         var txt = String(r.result);
-        /* acceptă JSON pur sau fișier data.js */
         var m = txt.match(/window\.BRM_DEFAULT\s*=\s*([\s\S]+?);?\s*$/);
         var obj = JSON.parse(m ? m[1] : txt);
         if (!obj.settings || !obj.products) throw new Error('format');
