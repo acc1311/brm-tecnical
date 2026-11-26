@@ -1,4 +1,4 @@
-/* BRM TECNICAL — publicat din admin (2026-11-26T10:56:23.774Z) */
+/* BRM TECNICAL — publicat din admin (2026-11-26T12:51:18.980Z) */
 window.BRM_DEFAULT = {
   "settings": {
     "email": "brm_tecnical@yahoo.com",
@@ -11,7 +11,7 @@ window.BRM_DEFAULT = {
     "heroTitleA": "Piese personalizate din metal,",
     "heroTitleB": "tăiate la laser",
     "heroLead": "Coronițe, tablouri, plăci și decorațiuni din metal, cu numele tău. Fiecare piesă e tăiată, șlefuită și vopsită de noi, în atelier.",
-    "priceFrom": "de la 99 lei",
+    "priceFrom": "de la 49 lei",
     "priceNote": "Personalizare inclusă · Livrare în toată România",
     "previewCaption": "Previzualizare live · Ø ~40 cm · Metal 1–2 mm",
     "customTitleA": "Fă-ți ",
