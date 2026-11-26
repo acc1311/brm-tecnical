@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin – BRM TECNICAL</title>
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login" id="loginView">
+  <div class="login-card">
+    <div class="logo"><span class="logo-mark">BRM</span><span class="logo-txt">TECNICAL · admin</span></div>
+    <h1>Panou de administrare</h1>
+    <p class="muted">Introdu parola pentru a edita textele, prețurile și produsele.</p>
+    <form id="loginForm">
+      <label class="fld">
+        <span>Parolă</span>
+        <input type="password" id="loginPass" autocomplete="current-password" required>
+      </label>
+      <button class="btn" type="submit">Intră</button>
+      <p class="err" id="loginErr" hidden>Parolă greșită.</p>
+    </form>
+    <p class="hint">Parola implicită: <code>brm2026</code> (schimb-o din tab-ul Setări).</p>
+    <a class="back" href="index.html">← înapoi la site</a>
+  </div>
+</div>
+
+<!-- PANOU -->
+<div class="app" id="appView" hidden>
+  <header class="top">
+    <div class="logo"><span class="logo-mark">BRM</span><span class="logo-txt">TECNICAL · admin</span></div>
+    <nav class="tabs" id="tabs">
+      <button class="tab is-on" data-tab="settings">Setări</button>
+      <button class="tab" data-tab="products">Produse &amp; prețuri</button>
+      <button class="tab" data-tab="preview">Previzualizare</button>
+    </nav>
+    <div class="top-r">
+      <a class="link" href="index.html" target="_blank" rel="noopener">Vezi site-ul ↗</a>
+      <button class="btn-sm" id="btnLogout">Ieși</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- SETĂRI -->
+    <section class="pane is-on" id="pane-settings">
+      <div class="pane-head">
+        <h2>Texte &amp; setări</h2>
+        <div class="pane-actions">
+          <button class="btn-sm ghost" id="btnResetSettings">Resetează textele</button>
+          <button class="btn-sm" id="btnSaveSettings">Salvează setările</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <label class="fld"><span>Email comenzi</span><input type="email" id="s_email"></label>
+        <label class="fld"><span>Oraș</span><input type="text" id="s_city"></label>
+        <label class="fld"><span>Județ</span><input type="text" id="s_county"></label>
+        <label class="fld"><span>Țară</span><input type="text" id="s_country"></label>
+        <label class="fld"><span>Program</span><input type="text" id="s_program"></label>
+        <label class="fld"><span>Preț de la (afișat)</span><input type="text" id="s_priceFrom"></label>
+        <label class="fld span2"><span>Bandă sus ({email} = adresa)</span><input type="text" id="s_band"></label>
+        <label class="fld span2"><span>Lead hero</span><textarea id="s_heroLead" rows="2"></textarea></label>
+        <label class="fld"><span>Preview caption</span><input type="text" id="s_previewCaption"></label>
+        <label class="fld"><span>Text implicit banner (nume)</span><input type="text" id="s_customNameDefault"></label>
+        <label class="fld"><span>Text implicit curbat (jos)</span><input type="text" id="s_customBottomDefault"></label>
+        <label class="fld"><span>Prefix subiect email</span><input type="text" id="s_orderSubjectPrefix"></label>
+      </div>
+
+      <h3>Parolă admin</h3>
+      <div class="grid2">
+        <label class="fld"><span>Parolă nouă</span><input type="text" id="newPass" placeholder="lasă gol ca să nu schimbi"></label>
+        <div class="fld"><span>&nbsp;</span><button class="btn-sm" id="btnChangePass">Schimbă parola</button></div>
+      </div>
+
+      <h3>Export / import</h3>
+      <div class="row">
+        <button class="btn-sm" id="btnExport">⬇ Descarcă data.js (pentru GitHub)</button>
+        <label class="btn-sm file-btn">⬆ Importă data.js<input type="file" id="importFile" accept=".js,application/json,.json" hidden></label>
+        <button class="btn-sm danger" id="btnWipe">Șterge modificările locale</button>
+      </div>
+      <p class="hint">Modificările se salvează imediat în browser (localStorage) și se văd pe site. Pentru GitHub Pages, descarcă <code>data.js</code> și înlocuiește fișierul din repo, apoi commit.</p>
+    </section>
+
+    <!-- PRODUSE -->
+    <section class="pane" id="pane-products">
+      <div class="pane-head">
+        <h2>Produse &amp; prețuri <span class="count" id="prodCount"></span></h2>
+        <div class="pane-actions">
+          <button class="btn-sm" id="btnAddProd">+ Produs nou</button>
+          <button class="btn-sm" id="btnSaveProd">Salvează toate</button>
+        </div>
+      </div>
+      <div class="prod-list" id="prodList"><!-- din JS --></div>
+    </section>
+
+    <!-- PREVIZUALIZARE -->
+    <section class="pane" id="pane-preview">
+      <div class="pane-head"><h2>Previzualizare rapidă</h2></div>
+      <p class="muted">Așa arată personalizatorul de pe site (banner + text curbat jos). Editează textele în tab-ul Setări.</p>
+      <div class="pv-box">
+        <div class="pv-stage" id="pvStage">
+          <img id="pvImg" src="images/coronita-model.png" alt="preview">
+          <span class="pv-banner" id="pvBanner">NUMELE TĂU</span>
+          <svg class="pv-curve" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs><path id="pvCurvePath" d="M 320,700 Q 500,860 680,700" fill="none"></path></defs>
+            <text class="pv-curve-text" id="pvCurveText">
+              <textPath href="#pvCurvePath" startOffset="50%" text-anchor="middle">SĂRBĂTORI FERICITE</textPath>
+            </text>
+          </svg>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" hidden></div>
+</div>
+
+<script src="data.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

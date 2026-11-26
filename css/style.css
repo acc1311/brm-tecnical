@@ -30,26 +30,25 @@ body{
   color:var(--ink);
   background-color:#fbf7ef;
   background-image:
-    radial-gradient(circle at 68% 520px,#ffd68c61 0,#ffd68c00 260px),
-    linear-gradient(165deg,#dce2f2,#e4e5f1 22%,#efeae6 48%,#f6eedf 70%,#fbf7ef);
+    radial-gradient(circle at 68% 520px,#ffd68c55 0,#ffd68c00 280px),
+    linear-gradient(165deg,#e8e4dc,#efece5 30%,#f6f1e8 60%,#fbf7ef);
   background-repeat:no-repeat;
-  background-size:100% 1500px,100% 1500px;
+  background-size:100% 1600px,100% 1600px;
   background-attachment:scroll;
   -webkit-font-smoothing:antialiased;
 }
-/* ninsoare discretă în partea de sus */
+/* textură discretă de atelier (nu ninsoare) */
 body::before{
   content:"";
-  position:absolute;left:0;right:0;top:0;height:1300px;
-  pointer-events:none;z-index:0;opacity:.9;
+  position:absolute;left:0;right:0;top:0;height:1200px;
+  pointer-events:none;z-index:0;opacity:.5;
   background-image:
-    radial-gradient(circle,#fff 0 2.5px,transparent 3px),
-    radial-gradient(circle,#fff 0 1.6px,transparent 2px),
-    radial-gradient(circle,rgba(255,255,255,.8) 0 3.5px,transparent 4px);
-  background-size:190px 230px,120px 160px,310px 270px;
-  background-position:20px 40px,70px 110px,150px 10px;
-  -webkit-mask-image:linear-gradient(#000 0%,#000 55%,transparent 100%);
-  mask-image:linear-gradient(#000 0%,#000 55%,transparent 100%);
+    radial-gradient(circle,rgba(184,148,112,.25) 0 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(46,52,56,.12) 0 1px,transparent 1.5px);
+  background-size:140px 140px,90px 90px;
+  background-position:30px 50px,70px 90px;
+  -webkit-mask-image:linear-gradient(#000 0%,#000 45%,transparent 100%);
+  mask-image:linear-gradient(#000 0%,#000 45%,transparent 100%);
 }
 main,.head,.foot,.band{position:relative;z-index:1}
 
@@ -169,29 +168,25 @@ button{font-family:inherit}
   filter:drop-shadow(4px 10px 14px rgba(40,22,6,.22));
   transition:opacity .2s;
 }
-.pv-top,.pv-banner,.pv-bottom{
-  position:absolute;left:8%;right:8%;text-align:center;
-  pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.pv-top{
-  top:44.5%;transform:translateY(-50%);
-  left:28%;right:28%;
-  font-family:'Saira Stencil One',sans-serif;
-  font-size:4cqw;letter-spacing:.12em;color:var(--ink);
-}
 .pv-banner{
-  top:53%;transform:translateY(-50%);
-  background:var(--ink);color:var(--ivory);
+  position:absolute;top:51%;left:14%;right:14%;transform:translateY(-50%);
+  text-align:center;pointer-events:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:var(--ivory);
   font-family:'Saira Stencil One',sans-serif;
-  font-size:7.4cqw;letter-spacing:.04em;line-height:1.35;
-  border-radius:10px;padding:.18em .4em;
-  box-shadow:0 8px 22px rgba(0,0,0,.28);
+  font-size:6.8cqw;letter-spacing:.04em;line-height:1.35;
+  text-shadow:0 2px 6px rgba(0,0,0,.55);
 }
-.pv-bottom{
-  top:63.5%;transform:translateY(-50%);
-  left:26%;right:26%;
+/* text curbat jos — SVG textPath */
+.pv-curve{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;overflow:visible;
+}
+.pv-curve-text{
   font-family:'Saira Stencil One',sans-serif;
-  font-size:3.6cqw;letter-spacing:.08em;color:var(--ink);
+  font-size:46px;letter-spacing:.06em;
+  fill:var(--ivory);
+  paint-order:stroke;stroke:rgba(0,0,0,.45);stroke-width:8px;stroke-linejoin:round;
 }
 .pv-cap{
   position:absolute;left:0;right:0;bottom:22px;text-align:center;
@@ -199,13 +194,11 @@ button{font-family:inherit}
 }
 .pv-cap::before,.pv-cap::after{content:"";display:inline-block;width:40px;height:1px;background:var(--gold);vertical-align:middle;margin:0 12px}
 
-/* variante de culoare */
-.preview[data-color="rosu"] .pv-banner{background:var(--red)}
-.preview[data-color="rosu"] .pv-top,
-.preview[data-color="rosu"] .pv-bottom{color:var(--red)}
-.preview[data-color="auriu"] .pv-banner{background:var(--goldtxt)}
-.preview[data-color="auriu"] .pv-top,
-.preview[data-color="auriu"] .pv-bottom{color:var(--goldtxt)}
+/* variante de culoare (fundalul vine din PNG; textul se adaptează) */
+.preview[data-color="rosu"] .pv-banner{color:#FFE9D9}
+.preview[data-color="rosu"] .pv-curve-text{fill:#FFE9D9}
+.preview[data-color="auriu"] .pv-banner{color:#FFF6E4}
+.preview[data-color="auriu"] .pv-curve-text{fill:#FFF6E4}
 
 /* comenzi */
 .controls{padding:34px 32px 30px;background:#fff;display:flex;flex-direction:column;gap:14px}
@@ -301,6 +294,26 @@ button{font-family:inherit}
   border-bottom:1px solid var(--line);align-items:center;
 }
 .band-sec > *{max-width:var(--maxw);width:100%}
+
+/* ---------- materiale ---------- */
+.mats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px;width:100%;
+}
+.mat{
+  background:#fff;border:1px solid var(--line);border-radius:10px;
+  padding:24px 22px;position:relative;transition:.25s;
+}
+.mat:hover{border-color:var(--gold);box-shadow:0 16px 36px #462d1414;transform:translateY(-3px)}
+.mat-dot{
+  display:block;width:34px;height:34px;border-radius:50%;
+  border:2px solid #ffffffcc;box-shadow:0 4px 10px #00000026, inset 0 -3px 6px #00000030;
+  margin-bottom:14px;
+}
+.mat h3{
+  margin:0 0 8px;font-family:'Cormorant Garamond',serif;
+  font-size:22px;font-weight:600;color:var(--ink);
+}
+.mat p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.55}
 
 /* ---------- filtre + grilă ---------- */
 .filters{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
@@ -445,6 +458,7 @@ button{font-family:inherit}
   .grid{grid-template-columns:repeat(3,1fr)}
   .steps{grid-template-columns:repeat(2,1fr)}
   .trust-in{grid-template-columns:repeat(2,1fr)}
+  .mats{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:900px){
   .customizer{grid-template-columns:1fr}
@@ -466,6 +480,7 @@ button{font-family:inherit}
 @media (max-width:640px){
   .sec{padding:64px 18px}
   .grid{grid-template-columns:repeat(2,1fr);gap:14px}
+  .mats{grid-template-columns:1fr}
   .card-b{padding:12px 13px 14px}
   .card-b h3{font-size:14.5px}
   .card-p{font-size:19px}
