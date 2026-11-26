@@ -1,13 +1,14 @@
 /* BRM TECNICAL — js/main.js (complet)
-   Atelier 8 piese + previzualizare live (text curbat măsurat exact)
-   + comandă cu atașare fișiere (DXF/SVG/PDF/poze) + email Gmail/Yahoo/WhatsApp.
-   Înlocuiește integral. Nu ai nevoie de alte scripturi. */
+   Atelier 8 piese + previzualizare live + comandă cu fișiere + email/WhatsApp.
+   Prețuri mici pe piese, adaos de material proporțional cu mărimea piesei.
+   Opțional din data.js: settings.shapePrices {coronita:149, tablou:89, ...},
+   settings.courier, settings.gift. */
 (function () {
   'use strict';
 
   var CFG = {
     email: 'brm_tecnical@yahoo.com',
-    whatsapp: '',            // ex: '40712345678' — gol = butonul nu apare
+    whatsapp: '',      // ex: '40712345678' — gol = butonul nu apare
     sendOnline: true,
     courier: 25,
     gift: 25,
@@ -71,14 +72,14 @@
     if (meas.parentNode) meas.parentNode.removeChild(meas);
   }
 
-  /* ===================== FORME ===================== */
+  /* ===================== FORME + PREȚURI ===================== */
   var SHAPES = [
-    { id: 'coronita', label: 'Coroniță', ic: '◍', base: 199, photo: true,
+    { id: 'coronita', label: 'Coroniță', ic: '◍', base: 149, photo: true,
       t1: { label: 'Nume pe banner', def: 'NUMELE TĂU', max: 26 },
       t2: { label: 'Text curbat jos', def: 'SĂRBĂTORI FERICITE', max: 34 },
       sizes: [{ v: 30, label: 'Ø 30 cm', mul: 0.85 }, { v: 40, label: 'Ø 40 cm', mul: 1 },
               { v: 50, label: 'Ø 50 cm', mul: 1.25 }, { v: 60, label: 'Ø 60 cm', mul: 1.5 }] },
-    { id: 'tablou', label: 'Tablou', ic: '▭', base: 179,
+    { id: 'tablou', label: 'Tablou', ic: '▭', base: 89,
       t1: { label: 'Nume / text principal', def: 'FAMILIA POPESCU', max: 24 },
       t2: { label: 'Text secundar', def: 'TÂRGU NEAMȚ · 2026', max: 30 },
       sizes: [{ v: 30, label: '30 × 20 cm', mul: 0.85 }, { v: 40, label: '40 × 27 cm', mul: 1 },
@@ -89,7 +90,7 @@
           '<circle cx="185" cy="305" r="13" fill="' + p.dark + '"/><circle cx="815" cy="305" r="13" fill="' + p.dark + '"/>' +
           svgText(o.pname, 500, 520, 108, 620, p.text, 3) + svgText(o.pcurve, 500, 625, 44, 560, p.text, 6);
       } },
-    { id: 'placuta', label: 'Plăcuță firmă', ic: '▬', base: 149,
+    { id: 'placuta', label: 'Plăcuță firmă', ic: '▬', base: 69,
       t1: { label: 'Nume firmă', def: 'BRM TECNICAL', max: 22 },
       t2: { label: 'Subtitlu', def: 'ATELIER · TÂRGU NEAMȚ', max: 32 },
       sizes: [{ v: 20, label: '20 × 10 cm', mul: 0.8 }, { v: 30, label: '30 × 15 cm', mul: 1 },
@@ -100,7 +101,7 @@
           '<circle cx="132" cy="588" r="15" fill="' + p.dark + '"/><circle cx="868" cy="588" r="15" fill="' + p.dark + '"/>' +
           svgText(o.pname, 500, 492, 86, 620, p.text, 3) + svgText(o.pcurve, 500, 566, 36, 600, p.text, 7);
       } },
-    { id: 'brad', label: 'Brad', ic: '▲', base: 169,
+    { id: 'brad', label: 'Brad', ic: '▲', base: 79,
       t1: { label: 'Nume pe banner', def: 'CRĂCIUN FERICIT', max: 22 },
       t2: { label: 'Text jos', def: 'FAMILIA POPESCU', max: 26 },
       sizes: [{ v: 30, label: '30 cm înălțime', mul: 0.85 }, { v: 40, label: '40 cm înălțime', mul: 1 },
@@ -117,7 +118,7 @@
           '<rect x="225" y="845" width="550" height="72" rx="9" fill="' + g + '"/>' +
           svgText(o.pcurve, 500, 894, 40, 480, p.text, 5);
       } },
-    { id: 'stea', label: 'Stea', ic: '★', base: 129,
+    { id: 'stea', label: 'Stea', ic: '★', base: 49,
       t1: { label: 'Nume', def: 'LA MULȚI ANI', max: 18 },
       t2: { label: 'Text secundar', def: '2026', max: 20 },
       sizes: [{ v: 25, label: 'Ø 25 cm', mul: 0.85 }, { v: 35, label: 'Ø 35 cm', mul: 1 },
@@ -126,7 +127,7 @@
         return '<polygon points="500,120 600,362 861,383 662,553 723,807 500,670 277,807 338,553 139,383 400,362" fill="url(#' + u + 'g)"/>' +
           svgText(o.pname, 500, 495, 70, 300, p.text, 1) + svgText(o.pcurve, 500, 560, 32, 250, p.text, 4);
       } },
-    { id: 'inima', label: 'Inimă', ic: '♥', base: 129,
+    { id: 'inima', label: 'Inimă', ic: '♥', base: 49,
       t1: { label: 'Nume', def: 'ANA & MATEI', max: 20 },
       t2: { label: 'Text secundar', def: '14 FEBRUARIE 2026', max: 24 },
       sizes: [{ v: 25, label: '25 cm', mul: 0.85 }, { v: 35, label: '35 cm', mul: 1 },
@@ -136,7 +137,7 @@
           'C538,290 600,238 680,238 C772,238 855,298 855,400 C855,520 750,655 500,840 Z" fill="url(#' + u + 'g)"/>' +
           svgText(o.pname, 500, 470, 84, 440, p.text, 2) + svgText(o.pcurve, 500, 545, 34, 360, p.text, 5);
       } },
-    { id: 'cerc', label: 'Monogramă', ic: '◯', base: 139,
+    { id: 'cerc', label: 'Monogramă', ic: '◯', base: 59,
       t1: { label: 'Inițiale (1–3 litere)', def: 'BM', max: 3 },
       t2: { label: 'Nume pe arc', def: 'FAMILIA POPESCU', max: 26 },
       sizes: [{ v: 25, label: 'Ø 25 cm', mul: 0.85 }, { v: 35, label: 'Ø 35 cm', mul: 1 },
@@ -149,7 +150,7 @@
           (arc ? '<text font-size="46" fill="' + p.text + '" font-family="Saira Stencil One, Jost, sans-serif" letter-spacing="4">' +
             '<textPath href="#' + u + 'arc" startOffset="50%" text-anchor="middle">' + esc(arc) + '</textPath></text>' : '');
       } },
-    { id: 'casa', label: 'Semn de casă', ic: '⌂', base: 189,
+    { id: 'casa', label: 'Semn de casă', ic: '⌂', base: 99,
       t1: { label: 'Nume familie', def: 'FAMILIA POPESCU', max: 22 },
       t2: { label: 'Text secundar', def: 'EST. 2026', max: 24 },
       sizes: [{ v: 40, label: '40 × 25 cm', mul: 0.9 }, { v: 50, label: '50 × 31 cm', mul: 1 },
@@ -195,6 +196,12 @@
       if (s.indexOf('galvaniz') >= 0 || s.indexOf('zincat') >= 0) return 15;
       return 0;
     },
+    matAddFor: function (base, mul, name) {
+      var f = Math.max(0.3, ((base || 0) / 149) * (mul || 1));
+      return Math.round(CORE.matAdd(name) * f);
+    },
+    minMul: function (sizes) { var m = 1; sizes.forEach(function (s) { if (s.mul < m) m = s.mul; }); return m; },
+    from: function (base, sizes) { return Math.round(base * CORE.minMul(sizes)); },
     sizesFor: function (o) {
       if (o.shape) return shapeById(o.shape).sizes;
       var n = CORE.norm(o.title);
@@ -211,7 +218,8 @@
     colorBy: function (v) { for (var i = 0; i < CORE.colors.length; i++) if (CORE.colors[i].v === v) return CORE.colors[i]; return CORE.colors[0]; },
     money: function (n) { return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' lei'; },
     price: function (o) {
-      var sz = CORE.sizeBy(o, o.size), mat = CORE.matAdd(o.material);
+      var sz = CORE.sizeBy(o, o.size);
+      var mat = CORE.matAddFor(o.base, sz.mul, o.material);
       var unit = (o.base || 0) * sz.mul + mat + (o.gift ? CFG.gift : 0);
       var pieces = unit * (o.qty || 1), ship = o.delivery === 'curier' ? CFG.courier : 0;
       return { mul: sz.mul, mat: mat, unit: Math.round(unit), pieces: Math.round(pieces), ship: ship, total: Math.round(pieces + ship) };
@@ -282,6 +290,12 @@
   }
   var DATA = loadData(), S = DATA.settings, MAIL = S.email || CFG.email;
   CFG.email = MAIL;
+  if (S.courier != null && !isNaN(+S.courier)) CFG.courier = +S.courier;
+  if (S.gift != null && !isNaN(+S.gift)) CFG.gift = +S.gift;
+  if (S.shapePrices) SHAPES.forEach(function (s) {
+    var v = S.shapePrices[s.id];
+    if (v != null && !isNaN(+v) && +v > 0) s.base = +v;
+  });
   var products = DATA.products || [];
   function $(id) { return document.getElementById(id); }
   function html(id, v) { var e = $(id); if (e && v != null) e.innerHTML = v; }
@@ -301,6 +315,7 @@
   'html{scrollbar-color:var(--bm-gold) var(--bm-sand);scrollbar-width:thin}' +
   '::-webkit-scrollbar{width:11px;height:11px}::-webkit-scrollbar-track{background:var(--bm-sand)}' +
   '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--bm-gold),var(--bm-copper));border:2px solid var(--bm-sand);border-radius:9px}' +
+  '::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--bm-brass),var(--bm-red))}' +
   'section[id],main[id]{scroll-margin-top:96px}' +
   '#bmProgress{position:fixed;top:0;left:0;height:3px;width:0;z-index:2147482000;background:linear-gradient(90deg,var(--bm-brass),var(--bm-red),var(--bm-copper));transition:width .12s linear}' +
   '.head.is-stuck{box-shadow:0 10px 30px rgba(40,22,6,.14)}' +
@@ -323,8 +338,10 @@
   '.at-types{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}' +
   '.at-type{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 14px;cursor:pointer;transition:.16s}' +
   '.at-type span{font-size:15px;line-height:1}' +
+  '.at-type b{font-weight:600;font-size:12px;color:var(--bm-copper)}' +
   '.at-type:hover{border-color:var(--bm-copper);transform:translateY(-1px)}' +
   '.at-type.is-on{background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-ivory);border-color:transparent;box-shadow:0 8px 20px rgba(27,31,35,.25)}' +
+  '.at-type.is-on b{color:var(--bm-brass)}' +
   '.at-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}' +
   '.at-fld{display:flex;flex-direction:column;gap:6px;min-width:0}' +
   '.at-fld>span{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--bm-steel);font-weight:600}' +
@@ -579,6 +596,7 @@
 
   /* ===================== ATELIER ===================== */
   var P = { shape: 'coronita', t1: '', t2: '', material: MATERIALS[0].name, color: 'negru', size: 40 };
+  var atMatKey = '';
   var cust = document.querySelector('.customizer');
   if (cust) {
     cust.innerHTML =
@@ -611,11 +629,8 @@
     html('atTitle', esc(S.customTitleA || 'Fă-ți ') + '<em>' + esc(tb) + '</em>');
     if (S.customNote) text('atNote', S.customNote);
     $('atTypes').innerHTML = SHAPES.map(function (s) {
-      return '<button type="button" class="at-type" data-sh="' + s.id + '"><span>' + s.ic + '</span>' + esc(s.label) + '</button>';
-    }).join('');
-    $('atMat').innerHTML = MATERIALS.map(function (m) {
-      var add = CORE.matAdd(m.name);
-      return '<option value="' + esc(m.name) + '">' + esc(m.name) + (add ? ' (+' + add + ' lei)' : ' (inclus)') + '</option>';
+      return '<button type="button" class="at-type" data-sh="' + s.id + '"><span>' + s.ic + '</span>' + esc(s.label) +
+        ' <b>' + CORE.from(s.base, s.sizes) + ' lei</b></button>';
     }).join('');
     $('atColors').innerHTML = CORE.colors.map(function (c) {
       return '<button type="button" class="at-color" data-c="' + c.v + '"><i style="background:' + c.hex + '"></i>' + esc(c.label) + '</button>';
@@ -624,12 +639,26 @@
     function atSizes() {
       var sh = shapeById(P.shape);
       $('atSize').innerHTML = sh.sizes.map(function (s) {
-        return '<option value="' + s.v + '">' + s.label + (s.mul !== 1 ? ' · ×' + s.mul.toFixed(2) : ' · standard') + '</option>';
+        return '<option value="' + s.v + '">' + s.label + ' · ' + CORE.money(sh.base * s.mul) + '</option>';
       }).join('');
       var found = false;
       sh.sizes.forEach(function (s) { if (s.v === P.size) found = true; });
       if (!found) P.size = sh.sizes[Math.min(1, sh.sizes.length - 1)].v;
       $('atSize').value = String(P.size);
+      atMats();
+    }
+    function atMats() {
+      var sh = shapeById(P.shape), sz = null;
+      sh.sizes.forEach(function (s) { if (s.v === P.size) sz = s; });
+      if (!sz) sz = sh.sizes[0];
+      var key = sh.base + '|' + sz.mul;
+      if (key === atMatKey) return;
+      atMatKey = key;
+      $('atMat').innerHTML = MATERIALS.map(function (m) {
+        var add = CORE.matAddFor(sh.base, sz.mul, m.name);
+        return '<option value="' + esc(m.name) + '">' + esc(m.name) + (add ? ' (+' + add + ' lei)' : ' (inclus)') + '</option>';
+      }).join('');
+      $('atMat').value = P.material;
     }
     function atLabels() {
       var sh = shapeById(P.shape);
@@ -666,7 +695,8 @@
       var sz = null;
       sh.sizes.forEach(function (s) { if (s.v === P.size) sz = s; });
       if (!sz) sz = sh.sizes[0];
-      text('atPrice', CORE.money(sh.base * sz.mul + CORE.matAdd(P.material)));
+      atMats();
+      text('atPrice', CORE.money(sh.base * sz.mul + CORE.matAddFor(sh.base, sz.mul, P.material)));
       text('atTag', sh.label + ' · ' + sz.label + ' · ' + P.material);
       Array.prototype.forEach.call(document.querySelectorAll('.at-type'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-sh') === P.shape); });
       Array.prototype.forEach.call(document.querySelectorAll('.at-color'), function (b) { b.classList.toggle('is-on', b.getAttribute('data-c') === P.color); });
@@ -682,7 +712,7 @@
     $('atT1').addEventListener('input', function () { P.t1 = this.value; atRender(); });
     $('atT2').addEventListener('input', function () { P.t2 = this.value; atRender(); });
     $('atMat').addEventListener('change', function () { P.material = this.value; atRender(); });
-    $('atSize').addEventListener('change', function () { P.size = +this.value; atRender(); });
+    $('atSize').addEventListener('change', function () { P.size = +this.value; atSizes(); atRender(); });
     $('atOrder').addEventListener('click', function () {
       openDialog({ type: 'custom', cfg: { shape: P.shape, t1: P.t1, t2: P.t2, material: P.material, color: P.color, size: P.size } });
     });
@@ -851,7 +881,7 @@
     bmi.addEventListener('load', function () { imgFail = false; });
   }
 
-  var O = null, view = 'order', lastFocus = null, sending = false, deleted = null, mailCtx = null, FILES = [];
+  var O = null, view = 'order', lastFocus = null, sending = false, deleted = null, mailCtx = null, FILES = [], lastMatKey = '';
 
   function orders() { return read(LS_ORDERS, []) || []; }
   function setOrders(a) { store(LS_ORDERS, a); refreshCounts(); }
@@ -861,7 +891,6 @@
     var pc = $('bmPillCount'); if (pc) pc.textContent = String(n);
     pill.classList.toggle('on', n > 0 && dlg.hidden);
   }
-
   function blankOrder(p, cfg) {
     var c = read(LS_CUSTOMER, {}) || {}, sh = cfg ? shapeById(cfg.shape) : null;
     return {
@@ -869,7 +898,7 @@
       shape: cfg ? sh.id : null,
       title: cfg ? (sh.label + ' personalizat') : (p ? p.name : 'Mesaj / piesă la comandă'),
       badge: cfg ? 'Personalizat · 5–7 zile' : (p ? (p.badge || '') : 'Proiect la cerere · 5–7 zile'),
-      base: cfg ? sh.base : (p ? (+p.price || 0) : 199),
+      base: cfg ? sh.base : (p ? (+p.price || 0) : 99),
       photo: cfg ? (SRC[cfg.color] || SRC.negru) : (p && p.img ? p.img : SRC.negru),
       personalizable: cfg ? true : isPers(p),
       preview: !!cfg,
@@ -883,28 +912,43 @@
       code: '', files: []
     };
   }
-  function fillStatic() {
-    $('bmMaterial').innerHTML = MATERIALS.map(function (m) {
-      var add = CORE.matAdd(m.name);
+  function fillMaterials(base, mul) {
+    var el = $('bmMaterial'); if (!el) return;
+    var cur = O ? O.material : MATERIALS[0].name;
+    el.innerHTML = MATERIALS.map(function (m) {
+      var add = CORE.matAddFor(base, mul, m.name);
       return '<option value="' + esc(m.name) + '">' + esc(m.name) + (add ? ' (+' + add + ' lei)' : ' (inclus)') + '</option>';
     }).join('');
+    el.value = cur;
+  }
+  function syncMaterials() {
+    if (!O) return;
+    var sz = CORE.sizeBy(O, O.size), key = O.base + '|' + sz.mul;
+    if (key === lastMatKey) return;
+    lastMatKey = key;
+    fillMaterials(O.base, sz.mul);
+  }
+  function fillStatic() {
     $('bmColors').innerHTML = CORE.colors.map(function (c) {
       return '<button type="button" class="bm-chip" data-act="color" data-v="' + c.v + '"><i style="background:' + c.hex + '"></i>' + esc(c.label) + '</button>';
     }).join('');
     $('bmShape').innerHTML = SHAPES.map(function (s) {
-      return '<option value="' + s.id + '">' + s.ic + '  ' + esc(s.label) + ' · de la ' + s.base + ' lei</option>';
+      return '<option value="' + s.id + '">' + s.ic + '  ' + esc(s.label) + ' · de la ' + CORE.from(s.base, s.sizes) + ' lei</option>';
     }).join('');
+    lastMatKey = '';
+    syncMaterials();
   }
   fillStatic();
   function fillSizes() {
     if (!O) return;
     var l = CORE.sizesFor(O), ss = $('bmSize'), found = false;
     ss.innerHTML = l.map(function (s) {
-      return '<option value="' + s.v + '">' + s.label + (s.mul !== 1 ? ' · ×' + s.mul.toFixed(2) : ' · standard') + '</option>';
+      return '<option value="' + s.v + '">' + s.label + ' · ' + CORE.money(O.base * s.mul) + '</option>';
     }).join('');
     l.forEach(function (s) { if (s.v === O.size) found = true; });
     if (!found) O.size = l[Math.min(1, l.length - 1)].v;
     ss.value = String(O.size);
+    syncMaterials();
   }
   function fillLabels() {
     if (!O) return;
@@ -939,6 +983,7 @@
   }
   function recalc() {
     if (!O) return;
+    syncMaterials();
     var p = CORE.price(O);
     var lines = [['Piesă × ' + O.qty, CORE.money(O.base * CORE.sizeBy(O, O.size).mul * O.qty)]];
     if (p.mat) lines.push([O.material, '+' + CORE.money(p.mat * O.qty)]);
@@ -1259,6 +1304,7 @@
       O.cust.mail = source.mail || O.cust.mail;
       O.cust.msg = source.msg || '';
     } else if (!O) O = blankOrder(products[0] || null, null);
+    lastMatKey = '';
     fillStatic(); fillSizes(); fillLabels();
     $('bmMaterial').value = O.material;
     $('bmQty').value = String(O.qty);
