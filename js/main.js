@@ -1,26 +1,25 @@
 /* BRM TECNICAL — js/main.js
-   Render din data.js + personalizator live + flux de comandă complet, fără program de email.
-   Înlocuiește integral acest fișier. Nu necesită alte modificări în site.
-   FormSubmit: prima comandă trimisă declanșează un email de activare pe adresa din CFG.email
-   (verifică și folderul Spam). După activare, toate comenzile ajung automat în inbox.
-   Comenzile sunt salvate și local, în „Comenzile mele”, ca să nu se piardă nimic. */
+   Render din data.js + personalizator live + flux de comandă complet.
+   Foto reală a fiecărui produs + previzualizare text la cerere.
+   Email prin Gmail / Yahoo / Outlook în browser (nu cere program instalat).
+   FormSubmit: prima comandă trimisă cere activarea pe adresa din CFG.email (verifică și Spam). */
 (function () {
   'use strict';
 
   /* ===================== CONFIG ===================== */
   var CFG = {
-    email: 'brm.laser.veronese@gmail.com',
+    email: 'brm_tecnical@yahoo.com',
     whatsapp: '',          // ex: '40712345678' (fără +, fără spații). Gol = butonul nu apare.
     sendOnline: true,      // trimitere directă pe email prin FormSubmit (gratuit, fără cont)
-    courier: 25,           // estimare livrare curier (lei)
-    gift: 25               // ambalaj cadou (lei)
+    courier: 25,
+    gift: 25
   };
   /* ================================================== */
 
   var LS_ORDERS = 'brm_orders';
   var LS_CUSTOMER = 'brm_customer';
 
-  /* ===================== CORE (logică pură) ===================== */
+  /* ===================== CORE ===================== */
   var CORE = {
     sizes: [
       { v: 30, label: 'Ø 30 cm', mul: 0.85 },
@@ -64,18 +63,10 @@
       var unit = (o.base || 0) * sz.mul + mat + (o.gift ? CFG.gift : 0);
       var pieces = unit * (o.qty || 1);
       var ship = o.delivery === 'curier' ? CFG.courier : 0;
-      return {
-        mul: sz.mul, mat: mat, unit: Math.round(unit),
-        pieces: Math.round(pieces), ship: ship, total: Math.round(pieces + ship)
-      };
+      return { mul: sz.mul, mat: mat, unit: Math.round(unit), pieces: Math.round(pieces), ship: ship, total: Math.round(pieces + ship) };
     },
-    phoneOk: function (v) {
-      var d = String(v || '').replace(/[^0-9]/g, '');
-      return d.length >= 9 && d.length <= 15;
-    },
-    mailOk: function (v) {
-      return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(String(v || '').trim());
-    },
+    phoneOk: function (v) { var d = String(v || '').replace(/[^0-9]/g, ''); return d.length >= 9 && d.length <= 15; },
+    mailOk: function (v) { return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(String(v || '').trim()); },
     code: function () {
       var a = Date.now().toString(36).slice(-4);
       var b = Math.floor(Math.random() * 1679616).toString(36);
@@ -109,6 +100,13 @@
     },
     mailto: function (subject, body) {
       return 'mailto:' + CFG.email + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    },
+    webmail: function (kind, subject, body) {
+      var to = encodeURIComponent(CFG.email), su = encodeURIComponent(subject), bo = encodeURIComponent(body);
+      if (kind === 'gmail') return 'https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=' + to + '&su=' + su + '&body=' + bo;
+      if (kind === 'yahoo') return 'https://compose.mail.yahoo.com/?to=' + to + '&subj=' + su + '&subject=' + su + '&body=' + bo;
+      if (kind === 'outlook') return 'https://outlook.live.com/mail/0/deeplink/compose?to=' + to + '&subject=' + su + '&body=' + bo;
+      return CORE.mailto(subject, body);
     },
     parseMailto: function (href) {
       var out = { subject: '', body: '', product: '', price: 0 };
@@ -174,13 +172,12 @@
     auriu: 'images/coronita-model-auriu.png'
   };
 
-  /* ===================== STILURI (paletă atelier) ===================== */
+  /* ===================== STILURI ===================== */
   var CSS = '' +
   ':root{--bm-ink:#1B1F23;--bm-steel:#3A3F44;--bm-graphite:#2E3438;--bm-red:#8F2E1B;--bm-red2:#6F2314;' +
     '--bm-gold:#B89470;--bm-brass:#C9A227;--bm-copper:#B87333;--bm-ivory:#FBF8F2;--bm-sand:#F4EEE4;' +
     '--bm-line:#E6DAC4;--bm-line2:#D9C7A3;--bm-ok:#1F7A4D;--bm-warn:#B45309;--bm-info:#1D4ED8;--bm-danger:#9B1C1C;}' +
   'html{scrollbar-color:var(--bm-gold) var(--bm-sand);scrollbar-width:thin}' +
-  'body{scrollbar-color:var(--bm-gold) var(--bm-sand)}' +
   '::-webkit-scrollbar{width:11px;height:11px}' +
   '::-webkit-scrollbar-track{background:var(--bm-sand)}' +
   '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--bm-gold),var(--bm-copper));border:2px solid var(--bm-sand);border-radius:9px}' +
@@ -194,8 +191,6 @@
   '[data-bm-reveal]{opacity:0;transform:translateY(20px);transition:opacity .75s cubic-bezier(.2,.7,.2,1),transform .75s cubic-bezier(.2,.7,.2,1)}' +
   '[data-bm-reveal].bm-in{opacity:1;transform:none}' +
   '[hidden]{display:none!important}' +
-
-  /* --- floating history pill --- */
   '#bmPill{position:fixed;right:18px;bottom:18px;z-index:2147481000;display:none;align-items:center;gap:9px;' +
     'font-family:Jost,sans-serif;font-size:14px;font-weight:600;color:var(--bm-ivory);cursor:pointer;' +
     'background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));border:1px solid rgba(201,162,39,.45);' +
@@ -203,8 +198,6 @@
   '#bmPill.on{display:flex}' +
   '#bmPill:hover{border-color:var(--bm-brass);transform:translateY(-1px)}' +
   '#bmPill b{background:var(--bm-brass);color:var(--bm-ink);border-radius:999px;padding:1px 8px;font-size:12.5px}' +
-
-  /* --- scrim + dialog --- */
   '.bm-scrim{position:fixed;inset:0;z-index:2147482500;background:radial-gradient(120% 90% at 50% 0%,rgba(60,34,12,.55),rgba(15,12,9,.78));' +
     'backdrop-filter:blur(4px);opacity:0;transition:opacity .28s ease}' +
   '.bm-scrim.on{opacity:1}' +
@@ -232,16 +225,17 @@
   '.bm-view{display:none}.bm-view.is-on{display:block;animation:bmIn .35s cubic-bezier(.2,.8,.2,1)}' +
   '@keyframes bmIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}' +
   '.bm-grid{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}' +
-
-  /* --- side / preview --- */
   '.bm-side{position:sticky;top:0}' +
   '.bm-stage{position:relative;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;' +
     'background:radial-gradient(80% 70% at 50% 25%,#FFF9EC,#EFE6D6 60%,#DCCEB6);border:1px solid var(--bm-line2)}' +
   '.bm-stage img{width:100%;height:100%;object-fit:contain;padding:8px;filter:drop-shadow(4px 12px 16px rgba(40,22,6,.28))}' +
   '.bm-stage::after{content:"";position:absolute;inset:0;pointer-events:none;' +
-    'background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.5) 48%,transparent 60%);' +
-    'transform:translateX(-120%);animation:bmSheen 6.5s ease-in-out infinite}' +
-  '@keyframes bmSheen{0%,72%{transform:translateX(-120%)}88%,100%{transform:translateX(120%)}}' +
+    'background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.45) 48%,transparent 60%);' +
+    'transform:translateX(-120%);animation:bmSheen 7s ease-in-out infinite}' +
+  '@keyframes bmSheen{0%,74%{transform:translateX(-120%)}90%,100%{transform:translateX(120%)}}' +
+  '.bm-pv{position:absolute;right:10px;top:10px;z-index:2;font-family:Jost,sans-serif;font-size:12px;font-weight:600;' +
+    'background:rgba(27,31,35,.85);color:var(--bm-ivory);border:1px solid rgba(201,162,39,.5);border-radius:999px;padding:7px 12px;cursor:pointer;transition:.16s}' +
+  '.bm-pv:hover{background:var(--bm-red);border-color:var(--bm-red)}' +
   '.bm-banner{position:absolute;top:51%;left:14%;right:14%;transform:translateY(-50%);text-align:center;' +
     'color:#FBF8F2;font-family:"Saira Stencil One",Jost,sans-serif;letter-spacing:.04em;line-height:1.3;' +
     'white-space:nowrap;overflow:hidden;text-shadow:0 2px 7px rgba(0,0,0,.6);pointer-events:none}' +
@@ -262,8 +256,6 @@
   '.bm-total span{font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--bm-steel);font-weight:600}' +
   '.bm-total strong{font-size:25px;font-family:"Cormorant Garamond",serif;color:var(--bm-red)}' +
   '.bm-fine{font-size:11.5px;color:var(--bm-steel);line-height:1.5;margin:9px 0 0}' +
-
-  /* --- controls --- */
   '.bm-block{background:#fff;border:1px solid var(--bm-line);border-radius:12px;padding:16px;margin-bottom:14px}' +
   '.bm-block h4{margin:0 0 12px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--bm-copper);font-weight:700}' +
   '.bm-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}' +
@@ -275,14 +267,14 @@
   '.bm-dialog input:focus,.bm-dialog select:focus,.bm-dialog textarea:focus{border-color:var(--bm-red);box-shadow:0 0 0 3px rgba(143,46,27,.13)}' +
   '.bm-dialog textarea{resize:vertical;min-height:84px}' +
   '.bm-dialog input[aria-invalid="true"]{border-color:var(--bm-danger);box-shadow:0 0 0 3px rgba(155,28,28,.12)}' +
-  '.bm-err{font-size:12px;color:var(--bm-danger);min-height:0}' +
+  '.bm-err{font-size:12px;color:var(--bm-danger)}' +
   '.bm-chips{display:flex;gap:8px;flex-wrap:wrap}' +
   '.bm-chip{display:flex;align-items:center;gap:7px;font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;color:var(--bm-steel);' +
     'background:#fff;border:1px solid var(--bm-line2);border-radius:999px;padding:9px 13px;cursor:pointer;transition:.16s}' +
   '.bm-chip i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:0 0 0 1px rgba(0,0,0,.18)}' +
   '.bm-chip:hover{border-color:var(--bm-copper)}' +
   '.bm-chip.is-on{background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-ivory);border-color:transparent;transform:translateY(-1px)}' +
-  '.bm-step{display:flex;align-items:center;gap:0;border:1px solid var(--bm-line2);border-radius:7px;overflow:hidden;background:#FFFDF9}' +
+  '.bm-step{display:flex;align-items:center;border:1px solid var(--bm-line2);border-radius:7px;overflow:hidden;background:#FFFDF9}' +
   '.bm-step button{width:44px;height:44px;border:0;background:var(--bm-sand);color:var(--bm-graphite);font-size:20px;cursor:pointer;transition:.15s}' +
   '.bm-step button:hover{background:var(--bm-red);color:#fff}' +
   '.bm-step input{border:0;border-radius:0;text-align:center;background:transparent;-moz-appearance:textfield}' +
@@ -293,8 +285,6 @@
   '.bm-toggle{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--bm-graphite);cursor:pointer;align-self:end;padding-bottom:11px}' +
   '.bm-toggle input{width:20px;height:20px;accent-color:var(--bm-red);cursor:pointer}' +
   '.bm-hint{font-size:12.5px;color:var(--bm-steel);line-height:1.5;margin:0}' +
-
-  /* --- footer --- */
   '.bm-foot{flex:0 0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 18px;' +
     'border-top:1px solid var(--bm-line);background:linear-gradient(90deg,rgba(244,238,228,.98),rgba(251,248,242,.98))}' +
   '.bm-btn{font-family:Jost,sans-serif;font-size:14.5px;font-weight:600;border-radius:8px;padding:13px 20px;cursor:pointer;' +
@@ -305,10 +295,18 @@
   '.bm-wa{background:linear-gradient(135deg,#1F7A4D,#155F3B);color:#fff}' +
   '.bm-ghost{background:#fff;color:var(--bm-graphite);border-color:var(--bm-line2)}' +
   '.bm-ghost:hover{border-color:var(--bm-red);color:var(--bm-red)}' +
-  '.bm-status{font-size:13px;margin-left:auto;max-width:46%;text-align:right;line-height:1.4}' +
+  '.bm-status{font-size:13px;margin-left:auto;max-width:44%;text-align:right;line-height:1.4}' +
   '.bm-status.ok{color:var(--bm-ok)}.bm-status.err{color:var(--bm-danger)}.bm-status.warn{color:var(--bm-warn)}' +
-
-  /* --- history --- */
+  '.bm-mailmenu{position:absolute;right:18px;bottom:80px;z-index:6;width:min(330px,92vw);background:#fff;' +
+    'border:1px solid var(--bm-line2);border-radius:12px;box-shadow:0 26px 60px rgba(28,16,6,.38);padding:10px;display:none}' +
+  '.bm-mailmenu.on{display:block;animation:bmIn .22s cubic-bezier(.2,.8,.2,1)}' +
+  '.bm-mailmenu h6{margin:2px 6px 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--bm-steel)}' +
+  '.bm-mailmenu a{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;text-decoration:none;' +
+    'color:var(--bm-graphite);font-size:14.5px;font-weight:600;transition:.15s}' +
+  '.bm-mailmenu a:hover{background:var(--bm-sand);color:var(--bm-red)}' +
+  '.bm-mailmenu a i{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;' +
+    'font-style:normal;font-size:13px;font-weight:700;color:#fff;flex:0 0 auto}' +
+  '.bm-mailmenu p{margin:8px 6px 2px;font-size:11.5px;color:var(--bm-steel);line-height:1.45}' +
   '.bm-hlist{display:flex;flex-direction:column;gap:12px}' +
   '.bm-ocard{background:#fff;border:1px solid var(--bm-line);border-radius:12px;padding:14px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}' +
   '.bm-ocard h5{margin:0 0 4px;font-family:"Cormorant Garamond",serif;font-size:19px;font-weight:600}' +
@@ -318,13 +316,11 @@
   '.bm-tag.pending{background:rgba(180,83,9,.15);color:var(--bm-warn)}' +
   '.bm-oact{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}' +
   '.bm-mini{font-family:Jost,sans-serif;font-size:12.5px;font-weight:600;background:#fff;border:1px solid var(--bm-line2);' +
-    'border-radius:6px;padding:8px 11px;cursor:pointer;color:var(--bm-graphite);transition:.15s}' +
+    'border-radius:6px;padding:8px 11px;cursor:pointer;color:var(--bm-graphite);transition:.15s;text-decoration:none;display:inline-block}' +
   '.bm-mini:hover{border-color:var(--bm-red);color:var(--bm-red)}' +
   '.bm-mini.del:hover{background:var(--bm-danger);color:#fff;border-color:var(--bm-danger)}' +
   '.bm-empty{text-align:center;padding:34px 16px;color:var(--bm-steel)}' +
   '.bm-empty strong{display:block;font-family:"Cormorant Garamond",serif;font-size:22px;color:var(--bm-graphite);margin-bottom:6px}' +
-
-  /* --- success --- */
   '.bm-done{max-width:620px;margin:6px auto;text-align:center;padding:8px 4px}' +
   '.bm-check{width:82px;height:82px;margin:0 auto 14px;display:block}' +
   '.bm-check circle{fill:none;stroke:var(--bm-ok);stroke-width:4;opacity:.35}' +
@@ -336,29 +332,24 @@
     'background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-brass);padding:8px 16px;border-radius:8px;margin:6px 0 12px}' +
   '.bm-done p{font-size:14.5px;color:var(--bm-steel);line-height:1.6;margin:0 auto 10px;max-width:520px}' +
   '.bm-recap{text-align:left;background:#fff;border:1px solid var(--bm-line);border-radius:12px;padding:14px;margin:14px 0;font-size:13.5px;white-space:pre-wrap;color:var(--bm-graphite);max-height:210px;overflow:auto}' +
-
-  /* --- toast --- */
   '#bmToast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:2147483000;' +
     'display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));color:var(--bm-ivory);' +
     'font-family:Jost,sans-serif;font-size:14px;padding:13px 18px;border-radius:10px;border:1px solid rgba(201,162,39,.4);' +
-    'box-shadow:0 20px 44px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.26s}' +
+    'box-shadow:0 20px 44px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:.26s;max-width:92vw}' +
   '#bmToast.on{opacity:1;transform:translateX(-50%);pointer-events:auto}' +
+  'body.bm-modal-open #bmToast{bottom:auto;top:16px}' +
   '#bmToast button{background:var(--bm-brass);color:var(--bm-ink);border:0;border-radius:6px;padding:7px 12px;font-weight:700;cursor:pointer;font-family:Jost,sans-serif}' +
-
-  /* --- responsive --- */
-  '@media(max-width:900px){.bm-grid{grid-template-columns:1fr}.bm-side{position:static}' +
-    '.bm-stage{max-width:330px;margin:0 auto}}' +
+  '@media(max-width:900px){.bm-grid{grid-template-columns:1fr}.bm-side{position:static}.bm-stage{max-width:330px;margin:0 auto}}' +
   '@media(max-width:640px){.bm-dialog{left:0;top:0;transform:translateY(24px);width:100vw;height:100dvh;max-height:100dvh;border-radius:0;border:0}' +
-    '.bm-dialog.on{transform:none}' +
-    '.bm-head{padding:12px 14px;gap:10px}.bm-brandtxt{display:none}' +
+    '.bm-dialog.on{transform:none}.bm-head{padding:12px 14px;gap:10px}.bm-brandtxt{display:none}' +
     '.bm-body{padding:14px 14px 4px}.bm-row{grid-template-columns:1fr}' +
     '.bm-foot{padding:12px 14px calc(12px + env(safe-area-inset-bottom));gap:8px}' +
     '.bm-btn{flex:1 1 46%;justify-content:center;padding:13px 12px}' +
     '.bm-status{flex:1 1 100%;max-width:100%;text-align:left;margin-left:0}' +
+    '.bm-mailmenu{right:8px;left:8px;width:auto;bottom:120px}' +
     '.bm-ocard{grid-template-columns:1fr}.bm-oact{justify-content:flex-start}' +
     '#bmPill{right:12px;bottom:12px;padding:11px 15px}}' +
-  '@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}' +
-    '.bm-stage::after{display:none}}';
+  '@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}.bm-stage::after{display:none}}';
 
   var styleEl = document.createElement('style');
   styleEl.textContent = CSS;
@@ -366,15 +357,11 @@
 
   /* ===================== RENDER SITE ===================== */
   text('year', String(new Date().getFullYear()));
-
   ['headMail', 'contactMail', 'footMail', 'footMail2'].forEach(function (id) {
     var el = $(id);
     if (el) { el.textContent = MAIL; el.setAttribute('href', 'mailto:' + MAIL); }
   });
-
-  if (S.band) {
-    html('bandText', esc(S.band).replace('{email}', '<a href="mailto:' + esc(MAIL) + '">' + esc(MAIL) + '</a>'));
-  }
+  if (S.band) html('bandText', esc(S.band).replace('{email}', '<a href="mailto:' + esc(MAIL) + '">' + esc(MAIL) + '</a>'));
   html('heroEyebrow', esc(S.heroEyebrow || ''));
   html('heroTitle', esc(S.heroTitleA || '') + '<br><em>' + esc(S.heroTitleB || '') + '</em>');
   text('heroLead', S.heroLead || '');
@@ -458,7 +445,6 @@
     return null;
   }
   function isPers(p) { return !!(p && String(p.cat || '').indexOf('personalizate') >= 0); }
-
   function orderMailto(p) {
     var body = 'Bună!\n\nCOMANDĂ:\n• Piesă: ' + p.name + '\n• Preț afișat: ' + p.price + ' lei\n\nDatele mele:\n• Nume: \n• Telefon: \n\nMulțumesc!';
     return CORE.mailto((S.orderSubjectPrefix || 'Comandă:') + ' ' + p.name, body);
@@ -532,8 +518,7 @@
     el.style.visibility = 'visible';
     el.textContent = t.toUpperCase();
     el.style.fontSize = '';
-    var size = parseFloat(getComputedStyle(el).fontSize) || 20;
-    var guard = 0;
+    var size = parseFloat(getComputedStyle(el).fontSize) || 20, guard = 0;
     while (el.scrollWidth > el.clientWidth && size > max && guard < 60) { size -= 1; el.style.fontSize = size + 'px'; guard++; }
   }
   function fitCurve(txt) {
@@ -572,8 +557,7 @@
       pageColor = chip.getAttribute('data-color') || 'negru';
       if (pv) pv.setAttribute('data-color', pageColor);
       if (img) {
-        var next = SRC[pageColor] || SRC.negru;
-        var pre = new Image();
+        var next = SRC[pageColor] || SRC.negru, pre = new Image();
         img.style.opacity = '0.35';
         pre.onload = function () { img.src = next; img.style.opacity = '1'; };
         pre.onerror = function () { img.style.opacity = '1'; };
@@ -598,9 +582,8 @@
     });
   }
 
-  /* ===================== PROGRES, NAV, REVEAL ===================== */
+  /* ===================== PROGRES / NAV / REVEAL ===================== */
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
   var prog = document.createElement('div'); prog.id = 'bmProgress'; document.body.appendChild(prog);
   var head = document.querySelector('.head');
   var ticking = false;
@@ -623,9 +606,7 @@
       var secObs = new IntersectionObserver(function (entries) {
         entries.forEach(function (en) {
           if (!en.isIntersecting) return;
-          navLinks.forEach(function (a) {
-            a.classList.toggle('is-active', a.getAttribute('href') === '#' + en.target.id);
-          });
+          navLinks.forEach(function (a) { a.classList.toggle('is-active', a.getAttribute('href') === '#' + en.target.id); });
         });
       }, { rootMargin: '-45% 0px -50% 0px' });
       navLinks.forEach(function (a) {
@@ -637,9 +618,7 @@
       var revealEls = [].slice.call(document.querySelectorAll('.sec, .atelier, .trust, .final'));
       revealEls.forEach(function (el) { el.setAttribute('data-bm-reveal', ''); });
       var revObs = new IntersectionObserver(function (entries) {
-        entries.forEach(function (en) {
-          if (en.isIntersecting) { en.target.classList.add('bm-in'); revObs.unobserve(en.target); }
-        });
+        entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('bm-in'); revObs.unobserve(en.target); } });
       }, { rootMargin: '0px 0px -6% 0px', threshold: 0.05 });
       revealEls.forEach(function (el) { revObs.observe(el); });
       setTimeout(function () { revealEls.forEach(function (el) { el.classList.add('bm-in'); }); }, 2600);
@@ -659,11 +638,11 @@
     }
     toastEl.classList.add('on');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(hideToast, actionLabel ? 7000 : 3200);
+    toastTimer = setTimeout(hideToast, actionLabel ? 7000 : 3400);
   }
   function hideToast() { toastEl.classList.remove('on'); }
 
-  /* ===================== DIALOG COMANDĂ ===================== */
+  /* ===================== DIALOG ===================== */
   var scrim = document.createElement('div'); scrim.className = 'bm-scrim'; scrim.hidden = true;
   document.body.appendChild(scrim);
 
@@ -684,7 +663,8 @@
         '<div class="bm-grid">' +
           '<aside class="bm-side">' +
             '<div class="bm-stage" id="bmStage">' +
-              '<img id="bmImg" alt="Previzualizare piesă">' +
+              '<img id="bmImg" alt="Fotografie piesă">' +
+              '<button type="button" class="bm-pv" id="bmPvBtn" data-act="pv">Previzualizare text</button>' +
               '<span class="bm-banner" id="bmBanner"></span>' +
               '<svg class="bm-curve" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
                 '<defs><path id="bmCurvePath" d="M 320,700 Q 500,860 680,700" fill="none"></path></defs>' +
@@ -760,6 +740,14 @@
         '</div>' +
       '</section>' +
     '</div>' +
+    '<div class="bm-mailmenu" id="bmMailMenu">' +
+      '<h6>Deschide mesajul în</h6>' +
+      '<a id="bmGmail" target="_blank" rel="noopener"><i style="background:#D93025">G</i>Gmail (în browser)</a>' +
+      '<a id="bmYahoo" target="_blank" rel="noopener"><i style="background:#6001D2">Y</i>Yahoo Mail (în browser)</a>' +
+      '<a id="bmOutlook" target="_blank" rel="noopener"><i style="background:#0F6CBD">O</i>Outlook / Hotmail (în browser)</a>' +
+      '<a id="bmLocal"><i style="background:#3A3F44">✉</i>Aplicația de email de pe PC</a>' +
+      '<p>Mesajul e deja scris. Trebuie doar să apeși „Trimite” în fila care se deschide.</p>' +
+    '</div>' +
     '<footer class="bm-foot" id="bmFoot"></footer>';
   document.body.appendChild(dlg);
 
@@ -769,12 +757,15 @@
   pill.addEventListener('click', function () { openDialog(null, 'hist'); });
   document.body.appendChild(pill);
 
-  /* ---------- stare comandă ---------- */
-  var O = null;
-  var view = 'order';
-  var lastFocus = null;
-  var sending = false;
-  var deleted = null;
+  var imgFail = false;
+  var bmi = $('bmImg');
+  if (bmi) bmi.addEventListener('error', function () {
+    if (!imgFail) { imgFail = true; bmi.setAttribute('src', SRC.negru); }
+  });
+  if (bmi) bmi.addEventListener('load', function () { imgFail = false; });
+
+  /* ---------- stare ---------- */
+  var O = null, view = 'order', lastFocus = null, sending = false, deleted = null, mailCtx = null;
 
   function orders() { return read(LS_ORDERS, []) || []; }
   function setOrders(a) { store(LS_ORDERS, a); refreshCounts(); }
@@ -793,41 +784,33 @@
       title: custom ? 'Ornament personalizat (coroniță cu nume)' : (p ? p.name : 'Mesaj / piesă la comandă'),
       badge: custom ? 'Personalizat · 5–7 zile' : (p ? (p.badge || '') : 'Proiect la cerere · 5–7 zile'),
       base: custom ? 249 : (p ? (+p.price || 0) : 199),
-      img: custom ? SRC.negru : (p ? p.img : SRC.negru),
+      photo: custom ? SRC[pageColor] : (p && p.img ? p.img : SRC.negru),
       personalizable: !!pers,
+      preview: !!custom,
       material: MATERIALS[0].name,
       size: 40, color: custom ? pageColor : 'negru', qty: 1,
       gift: false, delivery: 'curier',
       pname: custom ? ((inName && inName.value) || 'NUMELE TĂU') : (S.customNameDefault || 'NUMELE TĂU'),
       pcurve: custom ? ((inBottom && inBottom.value) || 'SĂRBĂTORI FERICITE') : (S.customBottomDefault || 'SĂRBĂTORI FERICITE'),
-      cust: {
-        nume: cust.nume || '', tel: cust.tel || '', mail: cust.mail || '',
-        adr: cust.adr || '', termen: '', msg: ''
-      },
+      cust: { nume: cust.nume || '', tel: cust.tel || '', mail: cust.mail || '', adr: cust.adr || '', termen: '', msg: '' },
       code: ''
     };
   }
 
   function fillSelects() {
     var ms = $('bmMaterial');
-    if (ms) {
-      ms.innerHTML = MATERIALS.map(function (m) {
-        var add = CORE.matAdd(m.name);
-        return '<option value="' + esc(m.name) + '">' + esc(m.name) + (add ? ' (+' + add + ' lei)' : ' (inclus)') + '</option>';
-      }).join('');
-    }
+    if (ms) ms.innerHTML = MATERIALS.map(function (m) {
+      var add = CORE.matAdd(m.name);
+      return '<option value="' + esc(m.name) + '">' + esc(m.name) + (add ? ' (+' + add + ' lei)' : ' (inclus)') + '</option>';
+    }).join('');
     var ss = $('bmSize');
-    if (ss) {
-      ss.innerHTML = CORE.sizes.map(function (s) {
-        return '<option value="' + s.v + '">' + s.label + (s.mul !== 1 ? ' · ×' + s.mul.toFixed(2) : ' · standard') + '</option>';
-      }).join('');
-    }
+    if (ss) ss.innerHTML = CORE.sizes.map(function (s) {
+      return '<option value="' + s.v + '">' + s.label + (s.mul !== 1 ? ' · ×' + s.mul.toFixed(2) : ' · standard') + '</option>';
+    }).join('');
     var cs = $('bmColors');
-    if (cs) {
-      cs.innerHTML = CORE.colors.map(function (c) {
-        return '<button type="button" class="bm-chip" data-act="color" data-v="' + c.v + '"><i style="background:' + c.hex + '"></i>' + esc(c.label) + '</button>';
-      }).join('');
-    }
+    if (cs) cs.innerHTML = CORE.colors.map(function (c) {
+      return '<button type="button" class="bm-chip" data-act="color" data-v="' + c.v + '"><i style="background:' + c.hex + '"></i>' + esc(c.label) + '</button>';
+    }).join('');
   }
   fillSelects();
 
@@ -835,9 +818,10 @@
     if (!O) return;
     var stage = $('bmStage'), banner = $('bmBanner'), ct = $('bmCurveText');
     if (!stage) return;
+    var live = O.personalizable && O.preview;
     var w = stage.clientWidth || 300;
     if (banner) {
-      if (!O.personalizable || !String(O.pname || '').trim()) { banner.style.visibility = 'hidden'; }
+      if (!live || !String(O.pname || '').trim()) banner.style.visibility = 'hidden';
       else {
         banner.style.visibility = 'visible';
         banner.textContent = String(O.pname).toUpperCase();
@@ -847,9 +831,8 @@
       }
     }
     if (ct) {
-      var tp = ct.querySelector('textPath');
-      var t = String(O.pcurve || '').trim().toUpperCase();
-      if (!O.personalizable || !t) { ct.style.visibility = 'hidden'; }
+      var tp = ct.querySelector('textPath'), t = String(O.pcurve || '').trim().toUpperCase();
+      if (!live || !t) ct.style.visibility = 'hidden';
       else {
         ct.style.visibility = 'visible';
         if (tp) tp.textContent = t;
@@ -863,8 +846,7 @@
   function recalc() {
     if (!O) return;
     var p = CORE.price(O);
-    var lines = [];
-    lines.push(['Piesă × ' + O.qty, CORE.money(O.base * CORE.sizeBy(O.size).mul * O.qty)]);
+    var lines = [['Piesă × ' + O.qty, CORE.money(O.base * CORE.sizeBy(O.size).mul * O.qty)]];
     if (p.mat) lines.push([O.material, '+' + CORE.money(p.mat * O.qty)]);
     if (O.gift) lines.push(['Ambalaj cadou', '+' + CORE.money(CFG.gift * O.qty)]);
     lines.push(['Livrare', O.delivery === 'curier' ? '+' + CORE.money(CFG.courier) : 'ridicare atelier']);
@@ -882,19 +864,23 @@
       if (dot) dot.style.background = (mat && mat.color) || '#3A3F44';
       if (lbl) lbl.textContent = O.material + ' · ' + CORE.sizeBy(O.size).label;
     }
+
+    var live = O.personalizable && O.preview;
     var im = $('bmImg');
     if (im) {
-      var src = O.personalizable ? (SRC[O.color] || SRC.negru) : (O.img || SRC.negru);
-      if (im.getAttribute('src') !== src) im.setAttribute('src', src);
+      var src = live ? (SRC[O.color] || SRC.negru) : (O.photo || SRC.negru);
+      if (im.getAttribute('src') !== src) { imgFail = false; im.setAttribute('src', src); }
       im.setAttribute('alt', O.title);
     }
+    var pvb = $('bmPvBtn');
+    if (pvb) { pvb.hidden = !O.personalizable; pvb.textContent = O.preview ? 'Foto modelului' : 'Previzualizare text'; }
+
     var pr = $('bmPersRow'); if (pr) pr.style.display = O.personalizable ? '' : 'none';
     var ph = $('bmPersHint');
-    if (ph) {
-      ph.textContent = O.personalizable
-        ? 'Scriem textul împreună înainte să tăiem. Previzualizarea se actualizează live.'
-        : 'Model din colecție. Vrei un nume sau un logo pe el? Scrie-ne în mesaj și îți spunem ce se poate.';
-    }
+    if (ph) ph.textContent = O.personalizable
+      ? 'Scriem textul împreună înainte să tăiem. Apasă „Previzualizare text” ca să vezi numele pe coroniță.'
+      : 'Model din colecție. Vrei un nume sau un logo pe el? Scrie-ne în mesaj și îți spunem ce se poate.';
+
     Array.prototype.forEach.call(dlg.querySelectorAll('#bmColors .bm-chip'), function (c) {
       c.classList.toggle('is-on', c.getAttribute('data-v') === O.color);
     });
@@ -902,32 +888,42 @@
       b.classList.toggle('is-on', b.getAttribute('data-v') === O.delivery);
     });
     fitDialogPreview();
-    updateFooterLinks();
+    updateLinks();
   }
 
   function readCustomer() {
     if (!O) return;
-    O.cust.nume = ($('bmCName') || {}).value || '';
-    O.cust.tel = ($('bmCPhone') || {}).value || '';
-    O.cust.mail = ($('bmCMail') || {}).value || '';
-    O.cust.adr = ($('bmCAddr') || {}).value || '';
+    O.cust.nume = (($('bmCName') || {}).value || '').trim();
+    O.cust.tel = (($('bmCPhone') || {}).value || '').trim();
+    O.cust.mail = (($('bmCMail') || {}).value || '').trim();
+    O.cust.adr = (($('bmCAddr') || {}).value || '').trim();
     O.cust.termen = ($('bmCDate') || {}).value || '';
     O.cust.msg = ($('bmCMsg') || {}).value || '';
-    O.cust.nume = O.cust.nume.trim(); O.cust.tel = O.cust.tel.trim();
-    O.cust.mail = O.cust.mail.trim(); O.cust.adr = O.cust.adr.trim();
     store(LS_CUSTOMER, { nume: O.cust.nume, tel: O.cust.tel, mail: O.cust.mail, adr: O.cust.adr });
   }
-
   function orderText() { readCustomer(); return CORE.buildText(O, CORE.price(O)); }
 
-  function updateFooterLinks() {
+  function updateLinks() {
     if (!O || view !== 'order') return;
     var txt = orderText();
     var wa = $('bmWaLink');
     if (wa) wa.href = 'https://wa.me/' + String(CFG.whatsapp).replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(txt);
-    var ml = $('bmMailLink');
-    if (ml) ml.href = CORE.mailto((S.orderSubjectPrefix || 'Comandă:') + ' ' + O.title, txt);
+    if (mailCtx === 'current') fillMailMenu((S.orderSubjectPrefix || 'Comandă:') + ' ' + O.title, txt);
   }
+
+  function fillMailMenu(subject, body) {
+    var g = $('bmGmail'), y = $('bmYahoo'), o = $('bmOutlook'), l = $('bmLocal');
+    if (g) g.href = CORE.webmail('gmail', subject, body);
+    if (y) y.href = CORE.webmail('yahoo', subject, body);
+    if (o) o.href = CORE.webmail('outlook', subject, body);
+    if (l) l.href = CORE.mailto(subject, body);
+  }
+  function openMailMenu(subject, body, ctx) {
+    mailCtx = ctx || 'fixed';
+    fillMailMenu(subject, body);
+    var m = $('bmMailMenu'); if (m) m.classList.add('on');
+  }
+  function closeMailMenu() { var m = $('bmMailMenu'); if (m) m.classList.remove('on'); mailCtx = null; }
 
   function setStatus(msg, kind) {
     var s = $('bmStatus');
@@ -942,18 +938,19 @@
     if (view === 'order') {
       f.innerHTML =
         '<button type="button" class="bm-btn bm-send" data-act="send" id="bmSend">Trimite comanda →</button>' +
-        (CFG.whatsapp ? '<a class="bm-btn bm-wa" id="bmWaLink" target="_blank" rel="noopener" data-act="wa">WhatsApp</a>' : '') +
+        (CFG.whatsapp ? '<a class="bm-btn bm-wa" id="bmWaLink" target="_blank" rel="noopener">WhatsApp</a>' : '') +
+        '<button type="button" class="bm-btn bm-ghost" data-act="email">Trimite pe email ▾</button>' +
         '<button type="button" class="bm-btn bm-ghost" data-act="copy">Copiază textul</button>' +
-        '<a class="bm-btn bm-ghost" id="bmMailLink" data-act="mail">Deschide emailul</a>' +
         '<span class="bm-status" id="bmStatus"></span>';
       if (!CFG.sendOnline) { var b = $('bmSend'); if (b) b.hidden = true; }
-      updateFooterLinks();
+      updateLinks();
     } else if (view === 'hist') {
       f.innerHTML = '<button type="button" class="bm-btn bm-ghost" data-act="view" data-v="order">← Înapoi la comandă</button>' +
         '<button type="button" class="bm-btn bm-ghost" data-act="close">Închide</button>' +
         '<span class="bm-status" id="bmStatus">Comenzile sunt păstrate în acest browser.</span>';
     } else {
       f.innerHTML = '<button type="button" class="bm-btn bm-send" data-act="view" data-v="hist">Vezi comenzile mele</button>' +
+        '<button type="button" class="bm-btn bm-ghost" data-act="emaildone">Trimite pe email ▾</button>' +
         '<button type="button" class="bm-btn bm-ghost" data-act="copydone">Copiază confirmarea</button>' +
         '<button type="button" class="bm-btn bm-ghost" data-act="close">Închide</button>' +
         '<span class="bm-status ok" id="bmStatus"></span>';
@@ -962,6 +959,7 @@
 
   function setView(v) {
     view = v;
+    closeMailMenu();
     ['order', 'hist', 'done'].forEach(function (k) {
       var el = $('bmView' + k.charAt(0).toUpperCase() + k.slice(1));
       if (el) el.classList.toggle('is-on', k === v);
@@ -1000,12 +998,11 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(payload)
-    }).then(function (r) {
-      return r.json().catch(function () { return {}; });
-    }).then(function (j) {
-      if (j && (j.success === 'true' || j.success === true)) return j;
-      throw new Error((j && j.message) || 'serviciul de trimitere nu a confirmat');
-    });
+    }).then(function (r) { return r.json().catch(function () { return {}; }); })
+      .then(function (j) {
+        if (j && (j.success === 'true' || j.success === true)) return j;
+        throw new Error((j && j.message) || 'serviciul de trimitere nu a confirmat');
+      });
   }
 
   function saveOrder(rec) {
@@ -1023,17 +1020,13 @@
     var btn = $('bmSend');
     if (btn) { btn.disabled = true; btn.textContent = 'Se trimite…'; }
     setStatus('Trimitem comanda la atelier…', '');
-    var p = CORE.price(O);
-    var code = CORE.code();
+    var p = CORE.price(O), code = CORE.code();
     O.code = code;
     var txt = CORE.buildText(O, p);
     sendRequest({
       _subject: 'Comandă ' + code + ' · ' + O.title,
-      _template: 'table',
-      _captcha: 'false',
-      Cod: code,
-      Piesa: O.title,
-      Material: O.material,
+      _template: 'table', _captcha: 'false',
+      Cod: code, Piesa: O.title, Material: O.material,
       Dimensiune: CORE.sizeBy(O.size).label,
       Culoare: CORE.colorBy(O.color).label,
       Bucati: String(O.qty),
@@ -1041,14 +1034,9 @@
       Livrare: CORE.deliveryLabel(O.delivery),
       Ambalaj: O.gift ? 'Da' : 'Nu',
       Estimare: CORE.money(p.total),
-      Nume: O.cust.nume,
-      Telefon: O.cust.tel,
-      Email: O.cust.mail || '-',
-      Adresa: O.cust.adr || '-',
-      Termen: O.cust.termen || '-',
-      Mesaj: O.cust.msg || '-',
-      Comanda_text: txt,
-      _honey: ''
+      Nume: O.cust.nume, Telefon: O.cust.tel, Email: O.cust.mail || '-',
+      Adresa: O.cust.adr || '-', Termen: O.cust.termen || '-', Mesaj: O.cust.msg || '-',
+      Comanda_text: txt, _honey: ''
     }).then(function () {
       saveOrder({ code: code, ts: Date.now(), title: O.title, total: p.total, status: 'trimisa', text: txt });
       showDone(code, txt, true);
@@ -1056,7 +1044,7 @@
       saveOrder({ code: code, ts: Date.now(), title: O.title, total: p.total, status: 'netrimisa', text: txt });
       sending = false;
       if (btn) { btn.disabled = false; btn.textContent = 'Reîncearcă trimiterea →'; }
-      setStatus('Nu am putut trimite automat (' + e.message + '). Comanda e salvată în „Comenzile mele” — trimite-o pe WhatsApp sau copiază textul.', 'err');
+      setStatus('Nu am putut trimite automat (' + e.message + '). Comanda e salvată — trimite-o pe email sau WhatsApp.', 'err');
       toast('Comanda ' + code + ' e salvată local. Poți retrimite oricând.', 'Vezi', function () { setView('hist'); });
     });
   }
@@ -1068,9 +1056,10 @@
     if (c) c.textContent = code;
     if (d) d.textContent = sent
       ? 'Am primit-o la atelier. Îți trimitem proiectul în 24 de ore, apoi confirmi și abia atunci plătești. Păstrează codul pentru orice întrebare.'
-      : 'Comanda e salvată în acest browser. Trimite-o pe WhatsApp sau pe email ca să ajungă la atelier.';
+      : 'Comanda e salvată în acest browser. Trimite-o pe email sau WhatsApp ca să ajungă la atelier.';
     if (r) r.textContent = txt;
     window.__bmLastDone = txt;
+    window.__bmLastCode = code;
     setView('done');
     refreshCounts();
   }
@@ -1094,7 +1083,7 @@
         (o.status !== 'trimisa' ? '<button type="button" class="bm-mini" data-act="resend" data-i="' + i + '">Retrimite</button>' : '') +
         '<button type="button" class="bm-mini" data-act="ocopy" data-i="' + i + '">Copiază</button>' +
         (CFG.whatsapp ? '<a class="bm-mini" target="_blank" rel="noopener" href="https://wa.me/' + String(CFG.whatsapp).replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent(o.text) + '">WhatsApp</a>' : '') +
-        '<a class="bm-mini" href="' + CORE.mailto('Comandă ' + o.code, o.text) + '">Email</a>' +
+        '<button type="button" class="bm-mini" data-act="oemail" data-i="' + i + '">Email ▾</button>' +
         '<button type="button" class="bm-mini del" data-act="odel" data-i="' + i + '">Șterge</button>' +
         '</div></article>';
     }).join('');
@@ -1115,7 +1104,6 @@
     } else fb();
   }
 
-  /* ---------- deschidere / închidere ---------- */
   function openDialog(source, startView) {
     lastFocus = document.activeElement;
     if (source && source.type === 'product') O = blankOrder(source.product, false);
@@ -1147,6 +1135,7 @@
 
     scrim.hidden = false; dlg.hidden = false;
     document.body.style.overflow = 'hidden';
+    document.body.classList.add('bm-modal-open');
     pill.classList.remove('on');
     requestAnimationFrame(function () { scrim.classList.add('on'); dlg.classList.add('on'); });
     setView(startView || 'order');
@@ -1154,25 +1143,28 @@
     refreshCounts();
     setTimeout(function () {
       var f = startView === 'hist' ? dlg.querySelector('.bm-close') : $('bmCName');
-      if (f && (!f.value || startView === 'hist')) f.focus();
+      if (f) f.focus();
       fitDialogPreview();
     }, 90);
   }
 
   function closeDialog() {
+    closeMailMenu();
     scrim.classList.remove('on'); dlg.classList.remove('on');
     document.body.style.overflow = '';
-    setTimeout(function () {
-      scrim.hidden = true; dlg.hidden = true;
-      refreshCounts();
-    }, reduce ? 0 : 260);
+    document.body.classList.remove('bm-modal-open');
+    setTimeout(function () { scrim.hidden = true; dlg.hidden = true; refreshCounts(); }, reduce ? 0 : 260);
     if (lastFocus && lastFocus.focus) { try { lastFocus.focus(); } catch (e) { } }
   }
 
   scrim.addEventListener('click', closeDialog);
   document.addEventListener('keydown', function (e) {
     if (dlg.hidden) return;
-    if (e.key === 'Escape') { closeDialog(); return; }
+    if (e.key === 'Escape') {
+      var m = $('bmMailMenu');
+      if (m && m.classList.contains('on')) { closeMailMenu(); return; }
+      closeDialog(); return;
+    }
     if (e.key !== 'Tab') return;
     var f = dlg.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
     var list = [].slice.call(f).filter(function (el) { return !el.disabled && el.offsetParent !== null; });
@@ -1183,7 +1175,6 @@
   });
   window.addEventListener('resize', function () { if (!dlg.hidden) fitDialogPreview(); });
 
-  /* ---------- evenimente dialog ---------- */
   dlg.addEventListener('input', function (e) {
     if (!O) return;
     var id = e.target.id;
@@ -1196,7 +1187,7 @@
     } else if (id === 'bmGift') { O.gift = e.target.checked; recalc(); }
     else if (id === 'bmMaterial') { O.material = e.target.value; recalc(); }
     else if (id === 'bmSize') { O.size = +e.target.value; recalc(); }
-    else { readCustomer(); updateFooterLinks(); }
+    else { readCustomer(); updateLinks(); }
   });
   dlg.addEventListener('change', function (e) {
     if (!O) return;
@@ -1206,16 +1197,28 @@
   });
 
   dlg.addEventListener('click', function (e) {
+    var inMenu = e.target.closest && e.target.closest('#bmMailMenu');
+    if (inMenu) {
+      if (e.target.closest('a')) { setTimeout(closeMailMenu, 120); toast('S-a deschis un tab nou cu mesajul gata scris.'); }
+      return;
+    }
     var t = e.target.closest ? e.target.closest('[data-act]') : null;
-    if (!t) return;
+    if (!t) { closeMailMenu(); return; }
     var act = t.getAttribute('data-act');
     var val = t.getAttribute('data-v');
     var idx = parseInt(t.getAttribute('data-i'), 10);
 
+    if (act !== 'email' && act !== 'emaildone' && act !== 'oemail') closeMailMenu();
+
     if (act === 'close') { e.preventDefault(); closeDialog(); }
     else if (act === 'view') { e.preventDefault(); setView(val); }
-    else if (act === 'color') { O.color = val; recalc(); }
-    else if (act === 'del') { O.delivery = val; recalc(); validateSoft(); }
+    else if (act === 'pv') { O.preview = !O.preview; recalc(); }
+    else if (act === 'color') { O.color = val; if (O.pid === 'custom') O.photo = SRC[val] || SRC.negru; recalc(); }
+    else if (act === 'del') {
+      O.delivery = val; recalc();
+      var i = $('bmCAddr'), er = $('bmEAddr');
+      if (val === 'atelier' && i && er) { i.setAttribute('aria-invalid', 'false'); er.textContent = ''; }
+    }
     else if (act === 'qty') {
       O.qty = Math.min(20, Math.max(1, O.qty + (+val)));
       var q = $('bmQty'); if (q) q.value = String(O.qty);
@@ -1224,10 +1227,12 @@
     else if (act === 'send') { doSend(); }
     else if (act === 'copy') { copyText(orderText(), 'Comanda e copiată. Trimite-o pe email sau WhatsApp.'); }
     else if (act === 'copydone') { copyText(window.__bmLastDone || '', 'Confirmarea e copiată.'); }
-    else if (act === 'wa' || act === 'mail') { updateFooterLinks(); toast('Se deschide ' + (act === 'wa' ? 'WhatsApp' : 'programul de email') + '…'); }
+    else if (act === 'email') { openMailMenu((S.orderSubjectPrefix || 'Comandă:') + ' ' + O.title, orderText(), 'current'); }
+    else if (act === 'emaildone') { openMailMenu('Comandă ' + (window.__bmLastCode || ''), window.__bmLastDone || '', 'fixed'); }
+    else if (act === 'oemail') { var oe = orders()[idx]; if (oe) openMailMenu('Comandă ' + oe.code, oe.text, 'fixed'); }
     else if (act === 'ocopy') { var o1 = orders()[idx]; if (o1) copyText(o1.text, 'Comanda ' + o1.code + ' e copiată.'); }
     else if (act === 'odel') {
-      var a = orders(); var rem = a[idx];
+      var a = orders(), rem = a[idx];
       if (!rem) return;
       deleted = { rec: rem, i: idx };
       a.splice(idx, 1); setOrders(a); renderHistory();
@@ -1247,34 +1252,26 @@
         Cod: o2.code, Piesa: o2.title, Estimare: CORE.money(o2.total), Comanda_text: o2.text, _honey: ''
       }).then(function () {
         var a2 = orders();
-        for (var i = 0; i < a2.length; i++) if (a2[i].code === o2.code) a2[i].status = 'trimisa';
+        for (var i2 = 0; i2 < a2.length; i2++) if (a2[i2].code === o2.code) a2[i2].status = 'trimisa';
         setOrders(a2); renderHistory();
         toast('Comanda ' + o2.code + ' a fost trimisă.');
       }).catch(function (err) {
         t.disabled = false; t.textContent = 'Retrimite';
-        toast('Tot nu se poate trimite (' + err.message + '). Folosește WhatsApp sau Email.');
+        toast('Tot nu se poate trimite (' + err.message + '). Folosește Email ▾ sau WhatsApp.');
       });
     }
   });
 
-  function validateSoft() {
-    var i = $('bmCAddr'), e = $('bmEAddr');
-    if (!O || !i || !e) return;
-    if (O.delivery === 'atelier') { i.setAttribute('aria-invalid', 'false'); e.textContent = ''; }
-  }
-
-  /* ===================== INTERCEPTARE COMENZI ===================== */
+  /* ===================== INTERCEPTARE ===================== */
   document.addEventListener('click', function (e) {
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var el = e.target;
     if (!el || !el.closest) return;
     if (el.closest('.bm-dialog') || el.closest('#bmPill') || el.closest('#bmToast')) return;
-
     var link = el.closest('a[data-order], a[href^="mailto:"]');
     if (!link) return;
     e.preventDefault();
     e.stopPropagation();
-
     var key = link.getAttribute('data-order');
     if (key === 'custom') { openDialog({ type: 'custom' }); return; }
     if (key) {
