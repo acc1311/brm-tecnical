@@ -1,4 +1,4 @@
-/* BRM TECNICAL — publicat din admin (2026-11-27T12:21:12.707Z) */
+/* BRM TECNICAL — publicat din admin (2026-11-27T12:24:16.044Z) */
 window.BRM_DEFAULT = {
   "settings": {
     "email": "brm_tecnical@yahoo.com",
