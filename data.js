@@ -1,4 +1,4 @@
-/* BRM TECNICAL — publicat din admin (2026-11-27T12:25:29.423Z) */
+/* BRM TECNICAL — publicat din admin (2026-11-27T12:43:45.206Z) */
 window.BRM_DEFAULT = {
   "settings": {
     "email": "brm_tecnical@yahoo.com",
@@ -403,7 +403,7 @@ window.BRM_DEFAULT = {
     "courier": 25,
     "gift": 25,
     "ordersUrl": "https://script.google.com/macros/s/AKfycbzQm5T05c6jQWKubORDxgTOKBpUkvhBShvV9z6rW2nJ/dev",
-    "ordersKey": ""
+    "ordersKey": "BRM2026"
   },
   "products": [
     {
