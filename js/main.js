@@ -1,12 +1,13 @@
 /* BRM TECNICAL — js/main.js (complet)
-   Atelier 8 piese · culori Negru / Roșu / Auriu / ALB · previzualizare live
-   comandă cu fișiere (DXF/SVG/PDF/poze) · email Gmail/Yahoo/Outlook · WhatsApp. */
+   Atelier 8 piese · culori Negru / Roșu / Auriu / Alb · previzualizare live
+   comandă cu fișiere (DXF/SVG/PDF/poze) · email Gmail/Yahoo/Outlook · WhatsApp
+   notificare stocare locală. */
 (function () {
   'use strict';
 
   var CFG = {
     email: 'brm_tecnical@yahoo.com',
-    whatsapp: '',     // ex: '40712345678' — gol = butonul nu apare
+    whatsapp: '',    // ex: '40712345678' — gol = butonul nu apare
     sendOnline: true,
     courier: 25,
     gift: 25,
@@ -16,7 +17,7 @@
   var ACCEPT = '.dxf,.dwg,.svg,.ai,.eps,.pdf,.png,.jpg,.jpeg,.webp,image/*,application/pdf';
   var EXT = ['.dxf', '.dwg', '.svg', '.ai', '.eps', '.pdf', '.png', '.jpg', '.jpeg', '.webp'];
   var ARC = 'M 250,690 Q 500,905 750,690';
-  var LS_ORDERS = 'brm_orders', LS_CUSTOMER = 'brm_customer';
+  var LS_ORDERS = 'brm_orders', LS_CUSTOMER = 'brm_customer', LS_CK = 'brm_cookie_consent';
   var NS = 'http://www.w3.org/2000/svg';
   var SHADOW = 'drop-shadow(4px 12px 16px rgba(40,22,6,.3))';
   var SHADOW_W = 'invert(1) brightness(1.04) drop-shadow(4px 12px 18px rgba(0,0,0,.55))';
@@ -377,6 +378,19 @@
   '.at-legal{font-size:12px;color:var(--bm-steel);margin:10px 0 0;line-height:1.5}' +
   '#bmPill{position:fixed;right:18px;bottom:18px;z-index:2147481000;display:none;align-items:center;gap:9px;font-family:Jost,sans-serif;font-size:14px;font-weight:600;color:var(--bm-ivory);cursor:pointer;background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));border:1px solid rgba(201,162,39,.45);padding:12px 17px;border-radius:999px;box-shadow:0 16px 34px rgba(27,31,35,.35)}' +
   '#bmPill.on{display:flex}#bmPill b{background:var(--bm-brass);color:var(--bm-ink);border-radius:999px;padding:1px 8px;font-size:12.5px}' +
+  '#bmCk{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147480000;max-width:940px;margin:0 auto;display:none;' +
+    'background:linear-gradient(135deg,var(--bm-graphite),var(--bm-ink));color:var(--bm-ivory);border:1px solid rgba(201,162,39,.45);' +
+    'border-radius:12px;padding:15px 18px;box-shadow:0 22px 50px rgba(0,0,0,.42);font-family:Jost,sans-serif}' +
+  '#bmCk.on{display:flex;align-items:center;gap:16px;flex-wrap:wrap}' +
+  '#bmCk p{margin:0;font-size:13.5px;line-height:1.55;flex:1 1 320px}' +
+  '#bmCk a{color:var(--bm-brass)}' +
+  '#bmCk .bm-ck-b{display:flex;gap:9px;flex-wrap:wrap}' +
+  '#bmCk button,#bmCk .bm-ck-l{font-family:Jost,sans-serif;font-size:13.5px;font-weight:600;border-radius:7px;padding:11px 17px;cursor:pointer;text-decoration:none;border:1px solid transparent;line-height:1}' +
+  '#bmCk button{background:linear-gradient(135deg,var(--bm-brass),var(--bm-copper));color:var(--bm-ink)}' +
+  '#bmCk button:hover{filter:brightness(1.07)}' +
+  '#bmCk .bm-ck-l{background:transparent;color:var(--bm-ivory);border-color:rgba(251,248,242,.35)}' +
+  '#bmCk .bm-ck-l:hover{border-color:var(--bm-brass);color:var(--bm-brass)}' +
+  'body.bm-modal-open #bmCk{display:none}' +
   '.bm-scrim{position:fixed;inset:0;z-index:2147482500;background:radial-gradient(120% 90% at 50% 0%,rgba(60,34,12,.55),rgba(15,12,9,.78));backdrop-filter:blur(4px);opacity:0;transition:opacity .28s}' +
   '.bm-scrim.on{opacity:1}' +
   '.bm-dialog{position:fixed;z-index:2147482600;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);opacity:0;width:min(1040px,96vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,#FFFDF9,var(--bm-ivory) 40%,var(--bm-sand));border:1px solid var(--bm-line2);border-radius:16px;box-shadow:0 40px 100px rgba(28,16,6,.5);font-family:Jost,sans-serif;color:var(--bm-graphite);transition:opacity .3s,transform .34s cubic-bezier(.2,.8,.2,1)}' +
@@ -510,8 +524,11 @@
     '.bm-head{padding:12px 14px;gap:10px}.bm-brandtxt{display:none}.bm-body{padding:14px 14px 4px}.bm-row{grid-template-columns:1fr}' +
     '.bm-foot{padding:12px 14px calc(12px + env(safe-area-inset-bottom));gap:8px}.bm-btn{flex:1 1 46%;justify-content:center;padding:13px 12px}' +
     '.bm-status{flex:1 1 100%;max-width:100%;text-align:left;margin-left:0}.bm-mailmenu{right:8px;left:8px;width:auto;bottom:120px}' +
-    '.bm-ocard{grid-template-columns:1fr}.bm-oact{justify-content:flex-start}#bmPill{right:12px;bottom:12px}}' +
-  '@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}';
+    '.bm-ocard{grid-template-columns:1fr}.bm-oact{justify-content:flex-start}#bmPill{right:12px;bottom:12px}' +
+    '#bmCk{left:10px;right:10px;bottom:10px;padding:13px 14px}#bmCk .bm-ck-b{width:100%}' +
+    '#bmCk button,#bmCk .bm-ck-l{flex:1 1 45%;text-align:center}}' +
+  '@media(prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important}}' +
+  '@media print{#bmCk,#bmPill,#bmProgress{display:none!important}}';
   var styleEl = document.createElement('style'); styleEl.textContent = CSS; document.head.appendChild(styleEl);
 
   /* ===================== RENDER SITE ===================== */
@@ -695,7 +712,8 @@
     function atRender() {
       var sh = shapeById(P.shape);
       var o = { pname: P.t1 || sh.t1.def, pcurve: P.t2 || sh.t2.def, color: P.color };
-      var stage = $('atStage'), photo = $('atPhoto'), box = $('atSvg'), banner = $('atBanner'), curve = $('atCurve'), csvg = $('atCurveSvg');
+      var stage = $('atStage'), photo = $('atPhoto'), box = $('atSvg');
+      var banner = $('atBanner'), curve = $('atCurve'), csvg = $('atCurveSvg');
       var ink = inkFor(P.color);
       stage.classList.toggle('is-white', isWhite(P.color));
       if (sh.photo) {
@@ -715,13 +733,20 @@
         while (banner.scrollWidth > banner.clientWidth && size > 9 && guard < 60) { size -= 1; banner.style.fontSize = size + 'px'; guard++; }
         var tp = curve.querySelector('textPath');
         if (tp) tp.textContent = String(o.pcurve).toUpperCase();
+        csvg.style.visibility = 'visible';
         curve.style.fill = ink.fill;
         curve.style.stroke = ink.stroke;
-        csvg.style.visibility = 'visible';
         fitCurveExact(curve, $('atArc'), 46);
       } else {
-        photo.hidden = true; banner.style.visibility = 'hidden'; csvg.style.visibility = 'hidden';
-        box.classList.add('on'); box.innerHTML = shapeSVG(P.shape, o, 'at');
+        photo.hidden = true;
+        banner.style.visibility = 'hidden';
+        banner.textContent = '';
+        csvg.style.visibility = 'hidden';
+        curve.style.visibility = 'hidden';
+        var tp0 = curve.querySelector('textPath');
+        if (tp0) tp0.textContent = '';
+        box.classList.add('on');
+        box.innerHTML = shapeSVG(P.shape, o, 'at');
       }
       var sz = null;
       sh.sizes.forEach(function (s) { if (s.v === P.size) sz = s; });
@@ -837,7 +862,7 @@
           '<img id="bmImg" alt="Fotografie piesă"><div class="bm-svgbox" id="bmSvg"></div>' +
           '<button type="button" class="bm-pv" id="bmPvBtn" data-act="pv">Previzualizare text</button>' +
           '<span class="bm-banner" id="bmBanner"></span>' +
-          '<svg class="bm-curve" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
+          '<svg class="bm-curve" id="bmCurveSvg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet" aria-hidden="true">' +
             '<defs><path id="bmCurvePath" d="' + ARC + '" fill="none"></path></defs>' +
             '<text id="bmCurveText" font-size="46"><textPath href="#bmCurvePath" startOffset="50%" text-anchor="middle"></textPath></text>' +
           '</svg><span class="bm-metal" id="bmMetalTag"><i></i><span></span></span></div>' +
@@ -991,13 +1016,13 @@
   }
   function fitDialogPreview() {
     if (!O) return;
-    var stage = $('bmStage'), banner = $('bmBanner'), ct = $('bmCurveText');
+    var stage = $('bmStage'), banner = $('bmBanner'), ct = $('bmCurveText'), csvg = $('bmCurveSvg');
     if (!stage) return;
     var live = O.personalizable && O.preview && (!O.shape || O.shape === 'coronita');
     var ink = inkFor(O.color);
     var w = stage.clientWidth || 300;
     if (banner) {
-      if (!live || !String(O.pname || '').trim()) banner.style.visibility = 'hidden';
+      if (!live || !String(O.pname || '').trim()) { banner.style.visibility = 'hidden'; banner.textContent = ''; }
       else {
         banner.style.visibility = 'visible';
         banner.textContent = String(O.pname).toUpperCase();
@@ -1013,6 +1038,7 @@
       if (tp) tp.textContent = live ? String(O.pcurve || '').toUpperCase() : '';
       ct.style.fill = ink.fill;
       ct.style.stroke = ink.stroke;
+      if (csvg) csvg.style.visibility = live ? 'visible' : 'hidden';
       if (!live) ct.style.visibility = 'hidden';
       else fitCurveExact(ct, $('bmCurvePath'), 46);
     }
@@ -1491,7 +1517,7 @@
     if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     var el = e.target;
     if (!el || !el.closest) return;
-    if (el.closest('.bm-dialog') || el.closest('#bmPill') || el.closest('#bmToast') || el.closest('.customizer')) return;
+    if (el.closest('.bm-dialog') || el.closest('#bmPill') || el.closest('#bmToast') || el.closest('.customizer') || el.closest('#bmCk')) return;
     var link = el.closest('a[data-order], a[href^="mailto:"]');
     if (!link) return;
     e.preventDefault(); e.stopPropagation();
@@ -1521,8 +1547,33 @@
     });
   }, true);
 
+  /* ===================== NOTIFICARE STOCARE LOCALĂ ===================== */
+  function initCookieNotice() {
+    var old = $('ckBar'); if (old && old.parentNode) old.parentNode.removeChild(old);
+    var seen = null;
+    try { seen = localStorage.getItem(LS_CK); } catch (e) { seen = '1'; }
+    if (seen) return;
+    var bar = document.createElement('div');
+    bar.id = 'bmCk';
+    bar.setAttribute('role', 'region');
+    bar.setAttribute('aria-label', 'Informare cookies');
+    bar.innerHTML =
+      '<p>Folosim doar stocare locală strict necesară, ca să reținem comenzile și datele de livrare pe acest dispozitiv. ' +
+      'Nu folosim cookies de analiză sau publicitate. <a href="legal.html#cookies">Politica de cookies</a></p>' +
+      '<div class="bm-ck-b"><button type="button" id="bmCkOk">Am înțeles</button>' +
+      '<a class="bm-ck-l" href="legal.html#confidentialitate">Confidențialitate</a></div>';
+    document.body.appendChild(bar);
+    setTimeout(function () { bar.classList.add('on'); }, 1200);
+    var ok = $('bmCkOk');
+    if (ok) ok.addEventListener('click', function () {
+      try { localStorage.setItem(LS_CK, JSON.stringify({ v: 1, ts: Date.now() })); } catch (e) { }
+      bar.classList.remove('on');
+      setTimeout(function () { if (bar.parentNode) bar.parentNode.removeChild(bar); }, 320);
+    });
+  }
+
   /* ---------- întoarcere după trimiterea cu fișier ---------- */
-  (function () {
+  function handleReturn() {
     var m = /[?&]comanda=([A-Za-z0-9-]+)/.exec(location.search);
     if (!m) return;
     var cod = m[1].toUpperCase(), a = orders(), hit = false;
@@ -1533,8 +1584,10 @@
       openDialog(null, 'hist');
       toast('Comanda ' + cod + ' a fost trimisă cu fișierele atașate.');
     }, 700);
-  })();
+  }
 
   refreshCounts();
+  initCookieNotice();
+  handleReturn();
   setInterval(function () { if (!dlg.hidden) fitDialogPreview(); }, 1500);
 })();
