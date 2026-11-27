@@ -1,4 +1,4 @@
-/* BRM TECNICAL — panou admin: texte, produse, forme atelier (prețuri + dimensiuni),
+/* BRM TECNICAL — panou admin: texte, comenzi (Google Sheets), produse, forme atelier,
    publicare online pe GitHub. */
 (function () {
   'use strict';
@@ -13,6 +13,7 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
   function lei(n) { return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' lei'; }
+  function readLS(k, d) { try { var r = localStorage.getItem(k); return r ? JSON.parse(r) : d; } catch (e) { return d; } }
 
   function hash(s) {
     var h = 5381;
@@ -31,10 +32,7 @@
     toast._t = setTimeout(function () { t.hidden = true; }, 2600);
   }
 
-  /* ---------- date ---------- */
-  function baseData() {
-    return clone(window.BRM_DEFAULT || { settings: {}, products: [] });
-  }
+  function baseData() { return clone(window.BRM_DEFAULT || { settings: {}, products: [] }); }
   function loadData() {
     try {
       var raw = localStorage.getItem(LS_DATA);
@@ -49,17 +47,14 @@
     return baseData();
   }
   function saveData(d) {
-    try {
-      localStorage.setItem(LS_DATA, JSON.stringify(d));
-      return true;
-    } catch (e) {
-      alert('Nu am putut salva: spațiul de stocare al browserului e plin (probabil din cauza pozelor încărcate). Publică online sau șterge câteva poze.');
+    try { localStorage.setItem(LS_DATA, JSON.stringify(d)); return true; }
+    catch (e) {
+      alert('Nu am putut salva: spațiul de stocare al browserului e plin. Publică online sau șterge câteva poze.');
       return false;
     }
   }
   var DATA = loadData();
 
-  /* ---------- login ---------- */
   function showApp() {
     $('loginView').hidden = true;
     $('appView').hidden = false;
@@ -85,20 +80,16 @@
       sessionStorage.setItem('brm_admin_ok', '1');
       $('loginErr').hidden = true;
       showApp();
-    } else {
-      $('loginErr').hidden = false;
-    }
+    } else { $('loginErr').hidden = false; }
   });
 
-  /* Reset parolă — buton pe ecranul de login */
   var btnResetPass = $('btnResetPass');
   if (btnResetPass) btnResetPass.addEventListener('click', function () {
-    if (!confirm('Resetezi parola la „brm2026"? Vei putea intra imediat cu această parolă.')) return;
+    if (!confirm('Resetezi parola la „brm2026”?')) return;
     localStorage.setItem(LS_HASH, hash('brm2026'));
     $('loginPass').value = '';
     $('loginErr').textContent = 'Parola a fost resetată la brm2026. Introdu-o mai jos.';
     $('loginErr').hidden = false;
-    toast('Parolă resetată la brm2026');
   });
 
   $('btnLogout').addEventListener('click', function () {
@@ -114,7 +105,6 @@
     toast('Parola a fost schimbată.');
   });
 
-  /* ---------- tabs ---------- */
   Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
     tab.addEventListener('click', function () {
       Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (t) { t.classList.remove('is-on'); });
@@ -122,8 +112,10 @@
       tab.classList.add('is-on');
       var pane = $('pane-' + tab.getAttribute('data-tab'));
       if (pane) pane.classList.add('is-on');
-      if (tab.getAttribute('data-tab') === 'preview') updatePreviewPane();
-      if (tab.getAttribute('data-tab') === 'shapes') renderShapes();
+      var k = tab.getAttribute('data-tab');
+      if (k === 'preview') updatePreviewPane();
+      if (k === 'shapes') renderShapes();
+      if (k === 'comenzi') loadOrders();
     });
   });
 
@@ -131,9 +123,8 @@
   var FIELDS = [
     'email', 'city', 'county', 'country', 'program', 'priceFrom', 'band',
     'heroLead', 'previewCaption', 'customNameDefault', 'customBottomDefault',
-    'orderSubjectPrefix'
+    'orderSubjectPrefix', 'ordersUrl', 'ordersKey'
   ];
-
   function fillSettings() {
     FIELDS.forEach(function (f) {
       var el = $('s_' + f);
@@ -146,31 +137,23 @@
       if (el) DATA.settings[f] = el.value;
     });
   }
-
   $('btnSaveSettings').addEventListener('click', function () {
     collectSettings();
-    if (saveData(DATA)) toast('Setările salvate local. Apasă „Publică online" ca să apară pentru toți.');
+    if (saveData(DATA)) toast('Setările salvate local. Apasă „Publică online”.');
     updatePreviewPane();
   });
-
   $('btnResetSettings').addEventListener('click', function () {
     if (!confirm('Resetezi toate textele la valorile din data.js implicit? Produsele rămân.')) return;
-    var b = baseData();
-    DATA.settings = b.settings;
-    fillSettings();
-    ensureShapes();
-    saveData(DATA);
-    renderShapes();
+    DATA.settings = baseData().settings;
+    fillSettings(); ensureShapes(); saveData(DATA); renderShapes();
     toast('Texte resetate.');
   });
 
   /* ---------- produse ---------- */
   var CATS = [
     ['personalizate', 'Personalizate'], ['craciun', 'Crăciun'], ['paste', 'Paște'],
-    ['primavara', 'Primăvară & mămici'], ['evenimente', 'Evenimente'],
-    ['italia', 'Ediții italiene']
+    ['primavara', 'Primăvară & mămici'], ['evenimente', 'Evenimente'], ['italia', 'Ediții italiene']
   ];
-
   function renderProducts() {
     var list = $('prodList');
     $('prodCount').textContent = '(' + DATA.products.length + ' produse)';
@@ -190,73 +173,51 @@
         '<label class="fld wide"><span>Cale imagine (sau upload mai jos)</span><input data-k="img" value="' + esc((p.img || '').indexOf('data:') === 0 ? '(poză încărcată în browser)' : (p.img || '')) + '"' + ((p.img || '').indexOf('data:') === 0 ? ' readonly' : '') + '></label>' +
         '<div class="prod-tools">' +
         '<label class="mini file-btn">📷 Încarcă poză<input type="file" accept="image/*" data-act="upload" hidden></label>' +
-        '<button class="mini" data-act="dup">Dublează</button>' +
-        '<span class="spacer"></span>' +
-        '<button class="mini del" data-act="del">Șterge</button>' +
-        '</div>' +
-        '<p class="cat-hint">Categorii (spațiate, ex. „craciun italia"): <input data-k="cat" value="' + esc(p.cat || '') + '" style="border:1px solid var(--line2);border-radius:4px;padding:4px 8px;font-size:13px"></p>' +
+        '<button class="mini" data-act="dup">Dublează</button><span class="spacer"></span>' +
+        '<button class="mini del" data-act="del">Șterge</button></div>' +
+        '<p class="cat-hint">Categorii (spațiate): <input data-k="cat" value="' + esc(p.cat || '') + '" style="border:1px solid var(--line2);border-radius:4px;padding:4px 8px;font-size:13px"></p>' +
         '</div></div>';
     }).join('');
   }
-
   function readProductFields(card) {
-    var i = +card.getAttribute('data-i');
-    var p = DATA.products[i];
+    var i = +card.getAttribute('data-i'), p = DATA.products[i];
     if (!p) return;
     card.querySelectorAll('[data-k]').forEach(function (el) {
       var k = el.getAttribute('data-k');
       if (k === 'price') p.price = +el.value || 0;
       else if (k === 'cat0') {
-        p.cat = [el.value].concat(
-          (p.cat || '').split(/\s+/).filter(function (c) {
-            if (!c || c === el.value) return false;
-            return !CATS.some(function (x) { return x[0] === c; });
-          })
-        ).filter(Boolean).join(' ');
+        p.cat = [el.value].concat((p.cat || '').split(/\s+/).filter(function (c) {
+          if (!c || c === el.value) return false;
+          return !CATS.some(function (x) { return x[0] === c; });
+        })).filter(Boolean).join(' ');
       }
-      else if (k === 'img') {
-        if (el.value.indexOf('(poză') !== 0 && el.value !== p.img) p.img = el.value;
-      }
+      else if (k === 'img') { if (el.value.indexOf('(poză') !== 0 && el.value !== p.img) p.img = el.value; }
       else p[k] = el.value;
     });
   }
   function collectAllProducts() {
     Array.prototype.forEach.call(document.querySelectorAll('.prod'), readProductFields);
   }
-
   $('prodList').addEventListener('change', function (e) {
     var card = e.target.closest('.prod');
     if (!card) return;
-    var act = e.target.getAttribute && e.target.getAttribute('data-act');
-    if (act === 'upload') { handleUpload(e.target, card); return; }
-    readProductFields(card);
-    saveData(DATA);
+    if (e.target.getAttribute && e.target.getAttribute('data-act') === 'upload') { handleUpload(e.target, card); return; }
+    readProductFields(card); saveData(DATA);
   });
-
   $('prodList').addEventListener('click', function (e) {
-    var btn = e.target.closest('[data-act]');
-    if (!btn) return;
-    var act = btn.getAttribute('data-act');
-    var card = btn.closest('.prod');
-    var i = +card.getAttribute('data-i');
+    var b = e.target.closest('[data-act]');
+    if (!b) return;
+    var act = b.getAttribute('data-act'), i = +b.closest('.prod').getAttribute('data-i');
     if (act === 'del') {
       if (!confirm('Ștergi „' + DATA.products[i].name + '"?')) return;
-      DATA.products.splice(i, 1);
-      saveData(DATA);
-      renderProducts();
-      toast('Produs șters.');
+      DATA.products.splice(i, 1); saveData(DATA); renderProducts(); toast('Produs șters.');
     } else if (act === 'dup') {
       collectAllProducts();
       var copy = clone(DATA.products[i]);
-      copy.id = 'p' + Date.now().toString(36);
-      copy.name = copy.name + ' (copie)';
-      DATA.products.splice(i + 1, 0, copy);
-      saveData(DATA);
-      renderProducts();
-      toast('Produs dublat.');
+      copy.id = 'p' + Date.now().toString(36); copy.name += ' (copie)';
+      DATA.products.splice(i + 1, 0, copy); saveData(DATA); renderProducts(); toast('Produs dublat.');
     }
   });
-
   function handleUpload(input, card) {
     var file = input.files && input.files[0];
     if (!file) return;
@@ -265,43 +226,140 @@
     reader.onload = function (ev) {
       var im = new Image();
       im.onload = function () {
-        var max = 1000;
-        var scale = Math.min(1, max / Math.max(im.width, im.height));
+        var scale = Math.min(1, 1000 / Math.max(im.width, im.height));
         var cv = document.createElement('canvas');
-        cv.width = Math.round(im.width * scale);
-        cv.height = Math.round(im.height * scale);
+        cv.width = Math.round(im.width * scale); cv.height = Math.round(im.height * scale);
         cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
         DATA.products[i].img = cv.toDataURL('image/jpeg', 0.85);
-        if (saveData(DATA)) {
-          renderProducts();
-          toast('Poză încărcată. La „Publică online" urcă automat în images/.');
-        }
+        if (saveData(DATA)) { renderProducts(); toast('Poză încărcată. La „Publică online” urcă automat în images/.'); }
       };
       im.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   }
-
   $('btnAddProd').addEventListener('click', function () {
     collectAllProducts();
-    DATA.products.push({
-      id: 'p' + Date.now().toString(36),
-      name: 'Produs nou', price: 169, cat: 'personalizate',
-      badge: 'În stoc · 3–5 zile', img: 'images/coronita-model.jpg'
-    });
-    saveData(DATA);
-    renderProducts();
-    toast('Produs adăugat. Editează câmpurile, apoi Publică online.');
+    DATA.products.push({ id: 'p' + Date.now().toString(36), name: 'Produs nou', price: 169, cat: 'personalizate', badge: 'În stoc · 3–5 zile', img: 'images/coronita-model.jpg' });
+    saveData(DATA); renderProducts(); toast('Produs adăugat.');
   });
-
   $('btnSaveProd').addEventListener('click', function () {
     collectAllProducts();
     if (saveData(DATA)) toast('Produsele salvate local.');
   });
 
-  /* ==========================================================
-     ATELIER — forme, prețuri de bază și dimensiuni
-     ========================================================== */
+  /* ---------- COMENZI (Google Sheets) ---------- */
+  var ORDERS_CACHE = [];
+  function ordersUrl() { return String(DATA.settings.ordersUrl || '').trim(); }
+  function ordersKey() { return String(DATA.settings.ordersKey || '').trim() || 'BRM2026'; }
+  function sheetPost(payload) {
+    return fetch(ordersUrl(), { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+      .then(function (r) { return r.json(); });
+  }
+  function loadOrders() {
+    var wrap = $('ordersWrap'), st = $('ordersStatus'), guide = $('ordersGuide');
+    if (!wrap) return;
+    renderLocalOrders();
+    var u = ordersUrl();
+    if (!u) {
+      wrap.innerHTML = '';
+      if (st) st.textContent = 'Google Sheets nu e conectat. Comenzile ajung momentan doar pe email (' + (DATA.settings.email || '') + ').';
+      if (guide) guide.open = true;
+      return;
+    }
+    if (guide) guide.open = false;
+    if (st) st.textContent = 'Se încarcă comenzile…';
+    fetch(u + '?action=list&key=' + encodeURIComponent(ordersKey()))
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.err) || 'răspuns invalid');
+        ORDERS_CACHE = j.comenzi || [];
+        if (st) st.textContent = ORDERS_CACHE.length ? ('Comenzi în registru: ' + ORDERS_CACHE.length) : 'Nicio comandă în registru încă.';
+        wrap.innerHTML = ordersTable(ORDERS_CACHE);
+      })
+      .catch(function (e) {
+        if (st) st.textContent = 'Nu am putut citi registrul (' + e.message + '). Verifică URL-ul și cheia în Setări.';
+        wrap.innerHTML = '';
+      });
+  }
+  function ordersTable(rows) {
+    if (!rows.length) return '<p class="hint">Nicio comandă încă.</p>';
+    return '<table class="ord-table"><thead><tr><th>Data</th><th>Cod</th><th>Client</th><th>Telefon</th><th>Piese</th><th>Total</th><th>Status</th></tr></thead><tbody>' +
+      rows.slice().reverse().map(function (r) {
+        var when = r.Data ? String(r.Data).slice(0, 16) : '';
+        var sels = ['noua', 'confirmata', 'in lucru', 'trimisa', 'finalizata', 'anulata'].map(function (s) {
+          return '<option' + ((r.Status || '') === s ? ' selected' : '') + '>' + s + '</option>';
+        }).join('');
+        return '<tr><td>' + esc(when) + '</td><td><b>' + esc(r.Cod || '') + '</b></td>' +
+          '<td>' + esc(r.Nume || '') + '<br><small>' + esc(r.Email || '') + '</small></td>' +
+          '<td>' + esc(r.Telefon || '') + '</td><td class="ord-piese">' + esc(r.Piese || '') + '</td>' +
+          '<td>' + esc(r.Total || '') + '</td>' +
+          '<td><select class="ord-status" data-ocod="' + esc(r.Cod || '') + '">' + sels + '</select></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  function renderLocalOrders() {
+    var host = $('ordersLocal');
+    if (!host) return;
+    var a = readLS('brm_orders', []) || [];
+    var m = readLS('brm_manual_orders', []) || [];
+    var all = m.concat(a);
+    if (!all.length) { host.innerHTML = '<p class="hint">Nicio comandă salvată în acest browser.</p>'; return; }
+    host.innerHTML = '<table class="ord-table"><thead><tr><th>Data</th><th>Cod</th><th>Titlu</th><th>Total</th><th>Status</th></tr></thead><tbody>' +
+      all.slice(0, 30).map(function (o) {
+        var d = new Date(o.ts || 0);
+        return '<tr><td>' + d.toLocaleDateString('ro-RO') + ' ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) + '</td>' +
+          '<td><b>' + esc(o.code || '') + '</b></td><td>' + esc(o.title || o.nume || '') + '</td><td>' + lei(o.total || 0) + '</td><td>' + esc(o.status || '') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  var ow = $('ordersWrap');
+  if (ow) ow.addEventListener('change', function (e) {
+    var sel = e.target.closest('.ord-status');
+    if (!sel || !ordersUrl()) return;
+    var cod = sel.getAttribute('data-ocod'), status = sel.value;
+    sheetPost({ action: 'status', cod: cod, status: status })
+      .then(function (j) { toast(j && j.ok ? ('Status ' + cod + ' → ' + status) : 'Nu am putut actualiza statusul.'); })
+      .catch(function () { toast('Eroare la actualizarea statusului.'); });
+  });
+  $('btnReloadOrders').addEventListener('click', loadOrders);
+  $('btnExportCsv').addEventListener('click', function () {
+    var rows = ORDERS_CACHE.length ? ORDERS_CACHE : (readLS('brm_orders', []) || []);
+    if (!rows.length) { toast('Nimic de exportat.'); return; }
+    var keys = ['Data', 'Cod', 'Nume', 'Telefon', 'Email', 'Adresa', 'Termen', 'Piese', 'Total', 'Livrare', 'Status'];
+    var lines = [keys.join(';')];
+    rows.forEach(function (r) {
+      lines.push(keys.map(function (k) {
+        var v = String(r[k] == null ? (r[k.toLowerCase()] == null ? '' : r[k.toLowerCase()]) : r[k]).replace(/[\r\n;]+/g, ' ');
+        return '"' + v.replace(/"/g, '""') + '"';
+      }).join(';'));
+    });
+    var blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'comenzi-brm.csv';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+    toast('CSV descărcat.');
+  });
+  $('btnAddOrderManual').addEventListener('click', function () {
+    var nume = prompt('Nume client:', ''); if (!nume || !nume.trim()) return;
+    var tel = prompt('Telefon:', '') || '';
+    var piese = prompt('Piese (ex: 1 × Brad cu spiriduși; 2 × Stea):', ''); if (!piese || !piese.trim()) return;
+    var total = parseInt(prompt('Total (lei):', '0'), 10) || 0;
+    var cod = 'BRM-M' + Date.now().toString(36).slice(-5).toUpperCase();
+    var rec = { cod: cod, nume: nume.trim(), telefon: tel, email: '', adresa: '', termen: '', piese: piese.trim(), total: total, livrare: 'manual', detalii: 'Comandă adăugată manual din admin.' };
+    if (ordersUrl()) {
+      sheetPost(rec).then(function (j) {
+        if (j && j.ok) { loadOrders(); toast('Comanda ' + cod + ' adăugată în registru.'); }
+        else toast('Nu am putut scrie în registru.');
+      }).catch(function () { toast('Eroare la scrierea în registru.'); });
+    } else {
+      var m = readLS('brm_manual_orders', []) || [];
+      m.unshift({ code: cod, ts: Date.now(), title: nume.trim(), total: total, status: 'manuala' });
+      try { localStorage.setItem('brm_manual_orders', JSON.stringify(m)); } catch (e) { }
+      renderLocalOrders();
+      toast('Comanda ' + cod + ' salvată local (conectează Sheets pentru registru complet).');
+    }
+  });
+
+  /* ---------- atelier: forme ---------- */
   var SHAPE_DEF = [
     { id: 'coronita', label: 'Coroniță', ic: '◍', base: 149, sizes: [
       { v: 30, label: 'Ø 30 cm', mul: 0.85 }, { v: 40, label: 'Ø 40 cm', mul: 1 },
@@ -330,7 +388,7 @@
   ];
   function shapeDef(id) {
     for (var i = 0; i < SHAPE_DEF.length; i++) if (SHAPE_DEF[i].id === id) return SHAPE_DEF[i];
-    return SHAPE_DEF[0];
+    return null;
   }
   function minMul(sizes) {
     var m = sizes[0] ? sizes[0].mul : 1;
@@ -366,26 +424,21 @@
     DATA.settings.courier = +DATA.settings.courier;
     DATA.settings.gift = +DATA.settings.gift;
   }
-
   function getAllShapes() {
     ensureShapes();
     var out = [];
     SHAPE_DEF.forEach(function (d) {
       var s = DATA.settings.shapes[d.id];
-      out.push({ id: d.id, label: d.label, ic: d.ic, base: s.base, sizes: s.sizes, photo: d.photo, custom: false });
+      out.push({ id: d.id, label: d.label, ic: d.ic, base: s.base, sizes: s.sizes, custom: false });
     });
     Object.keys(DATA.settings.customShapes || {}).forEach(function (id) {
       var c = DATA.settings.customShapes[id];
       if (!c || typeof c !== 'object') return;
-      out.push({
-        id: id, label: c.label || 'Formă nouă', ic: c.ic || '◆',
-        base: +c.base || 99, sizes: normSizes(c.sizes, [{ v: 30, label: '30 cm', mul: 0.85 }, { v: 40, label: '40 cm', mul: 1 }]),
-        photo: false, custom: true
-      });
+      out.push({ id: id, label: c.label || 'Formă nouă', ic: c.ic || '◆', base: +c.base || 99,
+        sizes: normSizes(c.sizes, [{ v: 30, label: '30 cm', mul: 0.85 }, { v: 40, label: '40 cm', mul: 1 }]), custom: true });
     });
     return out;
   }
-
   function renderShapes() {
     ensureShapes();
     var host = $('shapeList');
@@ -393,67 +446,41 @@
     var c = $('s_courier'), g = $('s_gift');
     if (c) c.value = DATA.settings.courier;
     if (g) g.value = DATA.settings.gift;
-
-    var all = getAllShapes();
-    host.innerHTML = all.map(function (d) {
+    host.innerHTML = getAllShapes().map(function (d) {
       var rows = d.sizes.map(function (z, i) {
-        return '<tr data-i="' + i + '">' +
-          '<td><input class="sh-in" data-k="v" type="number" min="1" step="1" value="' + esc(z.v) + '"></td>' +
+        return '<tr data-i="' + i + '"><td><input class="sh-in" data-k="v" type="number" min="1" step="1" value="' + esc(z.v) + '"></td>' +
           '<td><input class="sh-in" data-k="label" type="text" value="' + esc(z.label) + '"></td>' +
           '<td><input class="sh-in" data-k="mul" type="number" min="0.05" step="0.05" value="' + esc(z.mul) + '"></td>' +
           '<td class="sh-calc">' + lei(d.base * z.mul) + '</td>' +
-          '<td><button type="button" class="mini del" data-sact="delsize" data-i="' + i + '"' + (d.sizes.length < 2 ? ' disabled' : '') + '>Șterge</button></td>' +
-          '</tr>';
+          '<td><button type="button" class="mini del" data-sact="delsize" data-i="' + i + '"' + (d.sizes.length < 2 ? ' disabled' : '') + '>Șterge</button></td></tr>';
       }).join('');
-      var cls = d.custom ? 'shape-card custom-shape' : 'shape-card';
-      var labelHtml = d.custom
-        ? '<input class="shape-label-edit" data-k="label" value="' + esc(d.label) + '" aria-label="Nume formă">'
-        : '<span>' + d.ic + '</span>' + esc(d.label);
-      var resetBtn = d.custom
-        ? '<button type="button" class="mini del" data-sact="delshape">Șterge forma</button>'
-        : '<button type="button" class="mini" data-sact="reset">Reset implicit</button>';
-      return '<section class="' + cls + '" data-sh="' + d.id + '">' +
+      var labelHtml = d.custom ? '<input class="shape-label-edit" data-k="label" value="' + esc(d.label) + '">' : '<span>' + d.ic + '</span>' + esc(d.label);
+      var resetBtn = d.custom ? '<button type="button" class="mini del" data-sact="delshape">Șterge forma</button>' : '<button type="button" class="mini" data-sact="reset">Reset implicit</button>';
+      return '<section class="shape-card' + (d.custom ? ' custom-shape' : '') + '" data-sh="' + d.id + '">' +
         '<header class="shape-head"><h3>' + labelHtml + '</h3>' +
-        '<span class="shape-from">de la <b>' + lei(d.base * minMul(d.sizes)) + '</b></span>' +
-        resetBtn + '</header>' +
-        '<label class="fld sh-base"><span>Preț de bază (lei, la ×1)</span>' +
-        '<input class="sh-in" data-k="base" type="number" min="1" step="1" value="' + esc(d.base) + '"></label>' +
-        '<table class="sh-table"><thead><tr><th>Valoare (cm)</th><th>Etichetă afișată</th><th>Multiplicator</th><th>Preț</th><th></th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table>' +
+        '<span class="shape-from">de la <b>' + lei(d.base * minMul(d.sizes)) + '</b></span>' + resetBtn + '</header>' +
+        '<label class="fld sh-base"><span>Preț de bază (lei, la ×1)</span><input class="sh-in" data-k="base" type="number" min="1" step="1" value="' + esc(d.base) + '"></label>' +
+        '<table class="sh-table"><thead><tr><th>Valoare (cm)</th><th>Etichetă afișată</th><th>Multiplicator</th><th>Preț</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' +
         '<div class="row"><button type="button" class="mini" data-sact="addsize">+ Dimensiune</button>' +
-        '<span class="hint">Valoarea trebuie să fie unică. Multiplicatorul înmulțește prețul de bază.</span></div>' +
-        '</section>';
+        '<span class="hint">Valoarea trebuie să fie unică. Multiplicatorul înmulțește prețul de bază.</span></div></section>';
     }).join('');
-
-    /* ---------- BUTON: + PRODUS NOU ÎN COLECȚIE ---------- */
     var btnAddProdAtelier = document.createElement('button');
     btnAddProdAtelier.className = 'btn-sm';
     btnAddProdAtelier.textContent = '+ Produs nou în colecție';
     btnAddProdAtelier.style.marginBottom = '20px';
     btnAddProdAtelier.addEventListener('click', function () {
-      var name = prompt('Numele produsului nou (ex: Brad cu reni, Tablou "Crăciun fericit"):', '');
+      var name = prompt('Numele produsului nou:', '');
       if (!name || !name.trim()) return;
-      var price = prompt('Prețul afișat (lei):', '169');
-      if (price == null) return;
-      price = parseInt(price, 10);
+      var price = parseInt(prompt('Prețul afișat (lei):', '169'), 10);
       if (isNaN(price) || price < 0) price = 169;
-      DATA.products.push({
-        id: 'p' + Date.now().toString(36),
-        name: name.trim(),
-        price: price,
-        cat: 'personalizate',
-        badge: 'În stoc · 3–5 zile',
-        img: 'images/coronita-model.jpg'
-      });
-      saveData(DATA);
-      renderProducts();
-      toast('Produs "' + name.trim() + '" adăugat. Editează-l în tab-ul "Produse & prețuri".');
-      var tabProd = document.querySelector('[data-tab="products"]');
-      if (tabProd) tabProd.click();
+      DATA.products.push({ id: 'p' + Date.now().toString(36), name: name.trim(), price: price, cat: 'personalizate', badge: 'În stoc · 3–5 zile', img: 'images/coronita-model.jpg' });
+      saveData(DATA); renderProducts();
+      toast('Produs adăugat. Editează-l în tab-ul „Produse & prețuri”.');
+      var t = document.querySelector('[data-tab="products"]');
+      if (t) t.click();
     });
     host.parentNode.insertBefore(btnAddProdAtelier, host);
   }
-
   function refreshShapeCard(card, cfg) {
     var b = card.querySelector('.shape-from b');
     if (b) b.textContent = lei(cfg.base * minMul(cfg.sizes));
@@ -462,46 +489,33 @@
       if (z && td) td.textContent = lei(cfg.base * z.mul);
     });
   }
-
   function getCfgFromCard(card) {
     var id = card.getAttribute('data-sh');
-    var def = shapeDef(id);
-    if (def) return DATA.settings.shapes[id];
-    return DATA.settings.customShapes[id];
+    return shapeDef(id) ? DATA.settings.shapes[id] : DATA.settings.customShapes[id];
   }
-
   var shapeList = $('shapeList');
   if (shapeList) {
     shapeList.addEventListener('input', function (e) {
       var card = e.target.closest('.shape-card');
       if (!card) return;
-      var id = card.getAttribute('data-sh');
-      var cfg = getCfgFromCard(card);
+      var id = card.getAttribute('data-sh'), cfg = getCfgFromCard(card);
       if (!cfg) return;
       var k = e.target.getAttribute('data-k');
-      if (k === 'base') {
-        cfg.base = Math.max(0, +e.target.value || 0);
-      } else if (k === 'label') {
-        if (DATA.settings.customShapes[id]) DATA.settings.customShapes[id].label = e.target.value;
-      } else {
-        var tr = e.target.closest('tr');
-        if (!tr) return;
-        var z = cfg.sizes[+tr.getAttribute('data-i')];
-        if (!z) return;
+      if (k === 'base') cfg.base = Math.max(0, +e.target.value || 0);
+      else if (k === 'label') { if (DATA.settings.customShapes[id]) DATA.settings.customShapes[id].label = e.target.value; }
+      else {
+        var tr = e.target.closest('tr'); if (!tr) return;
+        var z = cfg.sizes[+tr.getAttribute('data-i')]; if (!z) return;
         if (k === 'v') z.v = Math.max(1, +e.target.value || 1);
         else if (k === 'mul') z.mul = Math.max(0.05, +e.target.value || 1);
         else if (k === 'label') z.label = e.target.value;
       }
-      saveData(DATA);
-      refreshShapeCard(card, cfg);
+      saveData(DATA); refreshShapeCard(card, cfg);
     });
-
     shapeList.addEventListener('change', function (e) {
       var card = e.target.closest('.shape-card');
       if (!card) return;
-      var id = card.getAttribute('data-sh');
-      var def = shapeDef(id);
-      var cfg = getCfgFromCard(card);
+      var id = card.getAttribute('data-sh'), def = shapeDef(id), cfg = getCfgFromCard(card);
       if (!cfg) return;
       var before = cfg.sizes.length;
       cfg.sizes = normSizes(cfg.sizes, def ? def.sizes : [{ v: 30, label: '30 cm', mul: 0.85 }, { v: 40, label: '40 cm', mul: 1 }]);
@@ -509,14 +523,11 @@
       if (cfg.sizes.length !== before) { renderShapes(); toast('Am eliminat valorile duplicate.'); }
       else refreshShapeCard(card, cfg);
     });
-
     shapeList.addEventListener('click', function (e) {
       var b = e.target.closest('[data-sact]');
       if (!b) return;
       var card = b.closest('.shape-card'), id = card.getAttribute('data-sh');
-      var def = shapeDef(id);
-      var cfg = getCfgFromCard(card);
-      var act = b.getAttribute('data-sact');
+      var def = shapeDef(id), cfg = getCfgFromCard(card), act = b.getAttribute('data-sact');
       if (act === 'addsize') {
         if (cfg.sizes.length >= 8) { toast('Maxim 8 dimensiuni per formă.'); return; }
         var last = cfg.sizes[cfg.sizes.length - 1] || { v: 40, mul: 1 };
@@ -530,43 +541,27 @@
         saveData(DATA); renderShapes(); toast('Dimensiune ștearsă.');
       } else if (act === 'reset') {
         if (!def) return;
-        if (!confirm('Readuci „' + def.label + '" la prețurile și dimensiunile implicite?')) return;
+        if (!confirm('Readuci „' + def.label + '” la valorile implicite?')) return;
         DATA.settings.shapes[id] = clone(def);
         saveData(DATA); renderShapes(); toast('Formă resetată.');
       } else if (act === 'delshape') {
         if (!DATA.settings.customShapes[id]) return;
-        if (!confirm('Ștergi forma „' + (DATA.settings.customShapes[id].label || id) + '"?')) return;
+        if (!confirm('Ștergi forma „' + (DATA.settings.customShapes[id].label || id) + '”?')) return;
         delete DATA.settings.customShapes[id];
         saveData(DATA); renderShapes(); toast('Formă ștearsă.');
       }
     });
   }
-
-  /* ---------- ADĂUGARE FORMĂ NOUĂ ---------- */
   var btnAddShape = $('btnAddShape');
   if (btnAddShape) btnAddShape.addEventListener('click', function () {
-    var name = prompt('Numele formei noi (ex: Cruce, Steluță, Inimă mare):', '');
+    var name = prompt('Numele formei noi (ex: Cruce, Steluță):', '');
     if (!name || !name.trim()) return;
     var id = 'custom_' + Date.now().toString(36);
-    DATA.settings.customShapes[id] = {
-      label: name.trim(),
-      ic: '◆',
-      base: 99,
-      sizes: [
-        { v: 30, label: '30 cm', mul: 0.85 },
-        { v: 40, label: '40 cm', mul: 1 },
-        { v: 50, label: '50 cm', mul: 1.25 }
-      ]
-    };
-    saveData(DATA);
-    renderShapes();
-    toast('Formă "' + name.trim() + '" adăugată. Editează prețul și dimensiunile mai jos.');
-    setTimeout(function () {
-      var card = document.querySelector('.shape-card[data-sh="' + id + '"]');
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 100);
+    DATA.settings.customShapes[id] = { label: name.trim(), ic: '◆', base: 99,
+      sizes: [{ v: 30, label: '30 cm', mul: 0.85 }, { v: 40, label: '40 cm', mul: 1 }, { v: 50, label: '50 cm', mul: 1.25 }] };
+    saveData(DATA); renderShapes();
+    toast('Formă adăugată. Editează prețul și dimensiunile mai jos.');
   });
-
   ['s_courier', 's_gift'].forEach(function (id) {
     var el = $(id);
     if (!el) return;
@@ -575,30 +570,22 @@
       saveData(DATA);
     });
   });
-
   var btnSaveShapes = $('btnSaveShapes');
   if (btnSaveShapes) btnSaveShapes.addEventListener('click', function () {
     ensureShapes();
-    if (saveData(DATA)) { renderShapes(); toast('Atelierul e salvat local. Apasă „Publică online".'); }
+    if (saveData(DATA)) { renderShapes(); toast('Atelierul e salvat local. Apasă „Publică online”.'); }
   });
-
   var btnResetShapes = $('btnResetShapes');
   if (btnResetShapes) btnResetShapes.addEventListener('click', function () {
-    if (!confirm('Readuci toate formele IMPLICITE la prețurile și dimensiunile inițiale? Formele custom rămân.')) return;
+    if (!confirm('Readuci toate formele IMPLICITE la valorile inițiale? Formele custom rămân.')) return;
     DATA.settings.shapes = {};
-    ensureShapes();
-    saveData(DATA);
-    renderShapes();
+    ensureShapes(); saveData(DATA); renderShapes();
     toast('Formele implicite au fost resetate.');
   });
 
-  /* ==========================================================
-     PUBLICARE ONLINE PE GITHUB
-     ========================================================== */
+  /* ---------- publicare GitHub ---------- */
   var GH = { user: 'acc1311', repo: 'brm-tecnical', branch: 'main' };
-  var LS_TOKEN = 'brm_gh_token';
-  var LS_PUB = 'brm_last_publish';
-
+  var LS_TOKEN = 'brm_gh_token', LS_PUB = 'brm_last_publish';
   function ghToken(ask) {
     var t = localStorage.getItem(LS_TOKEN);
     if (!t && ask) {
@@ -613,15 +600,10 @@
     return btoa(s);
   }
   function b64text(str) { return b64(new TextEncoder().encode(str)); }
-
   function ghApi(path, method, body) {
     return fetch('https://api.github.com/repos/' + GH.user + '/' + GH.repo + '/contents/' + path, {
       method: method || 'GET',
-      headers: {
-        'Authorization': 'Bearer ' + ghToken(true),
-        'Accept': 'application/vnd.github+json',
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Authorization': 'Bearer ' + ghToken(true), 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined
     }).then(function (r) {
       if (r.status === 404) return null;
@@ -641,29 +623,20 @@
   }
   function setPubState(on) {
     ['btnPublish', 'btnPublish2'].forEach(function (id) {
-      var b = $(id);
-      if (!b) return;
-      b.disabled = on;
-      b.style.opacity = on ? '.6' : '';
+      var b = $(id); if (!b) return;
+      b.disabled = on; b.style.opacity = on ? '.6' : '';
       b.textContent = on ? '⏳ Se publică…' : '☁ Publică online';
     });
   }
   function showLastPublish() {
-    var el = $('pubStatus');
-    if (!el) return;
+    var el = $('pubStatus'); if (!el) return;
     var t = localStorage.getItem(LS_PUB);
     el.textContent = t ? ('Ultima publicare: ' + t) : 'Nicio publicare online încă.';
   }
-
   function publishOnline() {
-    collectSettings();
-    collectAllProducts();
-    ensureShapes();
-    saveData(DATA);
+    collectSettings(); collectAllProducts(); ensureShapes(); saveData(DATA);
     if (!ghToken(true)) { toast('Fără token nu pot publica.'); return; }
-    setPubState(true);
-    toast('Se publică pe GitHub…');
-
+    setPubState(true); toast('Se publică pe GitHub…');
     var jobs = Promise.resolve();
     DATA.products.forEach(function (p) {
       if ((p.img || '').indexOf('data:') === 0) {
@@ -676,38 +649,25 @@
         });
       }
     });
-
     jobs.then(function () {
-      var content = '/* BRM TECNICAL — publicat din admin (' + new Date().toISOString() + ') */\n' +
-        'window.BRM_DEFAULT = ' + JSON.stringify(DATA, null, 2) + ';\n';
+      var content = '/* BRM TECNICAL — publicat din admin (' + new Date().toISOString() + ') */\nwindow.BRM_DEFAULT = ' + JSON.stringify(DATA, null, 2) + ';\n';
       return ghPut('data.js', b64text(content), 'Admin: actualizare continut');
     }).then(function () {
-      saveData(DATA);
-      renderProducts();
-      renderShapes();
+      saveData(DATA); renderProducts(); renderShapes();
       localStorage.setItem(LS_PUB, new Date().toLocaleString('ro-RO'));
-      showLastPublish();
-      toast('Publicat! Site-ul se actualizează în ~1 minut.');
+      showLastPublish(); toast('Publicat! Site-ul se actualizează în ~1 minut.');
     }).catch(function (e) {
-      if (/^401/.test(e.message)) {
-        localStorage.removeItem(LS_TOKEN);
-        alert('Token invalid sau expirat. Apasă „🔑 Token GitHub" și pune unul nou.');
-      } else if (/^403|^404/.test(e.message)) {
-        alert('Acces refuzat. Verifică token-ul: fine-grained, repo „brm-tecnical", Contents: Read and write.\n\n' + e.message);
-      } else {
-        alert('Eroare la publicare: ' + e.message);
-      }
+      if (/^401/.test(e.message)) { localStorage.removeItem(LS_TOKEN); alert('Token invalid sau expirat.'); }
+      else if (/^403|^404/.test(e.message)) alert('Acces refuzat. Verifică token-ul (Contents: Read and write, repo brm-tecnical).');
+      else alert('Eroare la publicare: ' + e.message);
     }).then(function () { setPubState(false); });
   }
-
   ['btnPublish', 'btnPublish2'].forEach(function (id) {
-    var b = $(id);
-    if (b) b.addEventListener('click', publishOnline);
+    var b = $(id); if (b) b.addEventListener('click', publishOnline);
   });
-
   var btnTok = $('btnToken');
   if (btnTok) btnTok.addEventListener('click', function () {
-    var t = prompt('Token GitHub nou (lasă gol ca să ștergi token-ul salvat):', '');
+    var t = prompt('Token GitHub nou (gol = șterge):', '');
     if (t === null) return;
     if (t.trim()) localStorage.setItem(LS_TOKEN, t.trim()); else localStorage.removeItem(LS_TOKEN);
     toast('Token actualizat.');
@@ -715,22 +675,15 @@
 
   /* ---------- export / import ---------- */
   $('btnExport').addEventListener('click', function () {
-    collectSettings();
-    collectAllProducts();
-    ensureShapes();
-    saveData(DATA);
-    var content = '/* BRM TECNICAL — exportat din admin (' + new Date().toISOString().slice(0, 10) + ') */\n' +
-      'window.BRM_DEFAULT = ' + JSON.stringify(DATA, null, 2) + ';\n';
+    collectSettings(); collectAllProducts(); ensureShapes(); saveData(DATA);
+    var content = '/* BRM TECNICAL — exportat din admin (' + new Date().toISOString().slice(0, 10) + ') */\nwindow.BRM_DEFAULT = ' + JSON.stringify(DATA, null, 2) + ';\n';
     var blob = new Blob([content], { type: 'application/javascript' });
     var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'data.js';
-    document.body.appendChild(a);
-    a.click();
+    a.href = URL.createObjectURL(blob); a.download = 'data.js';
+    document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 400);
     toast('data.js descărcat (backup).');
   });
-
   $('importFile').addEventListener('change', function (e) {
     var f = e.target.files && e.target.files[0];
     if (!f) return;
@@ -741,40 +694,25 @@
         var m = txt.match(/window\.BRM_DEFAULT\s*=\s*([\s\S]+?);?\s*$/);
         var obj = JSON.parse(m ? m[1] : txt);
         if (!obj.settings || !obj.products) throw new Error('format');
-        DATA = obj;
-        ensureShapes();
-        saveData(DATA);
-        fillSettings();
-        renderProducts();
-        renderShapes();
-        updatePreviewPane();
+        DATA = obj; ensureShapes(); saveData(DATA);
+        fillSettings(); renderProducts(); renderShapes(); updatePreviewPane();
         toast('Importat cu succes.');
-      } catch (err) {
-        alert('Fișier invalid. Așteptam un data.js exportat din acest panou.');
-      }
+      } catch (err) { alert('Fișier invalid.'); }
     };
-    r.readAsText(f);
-    e.target.value = '';
+    r.readAsText(f); e.target.value = '';
   });
-
   $('btnWipe').addEventListener('click', function () {
     if (!confirm('Ștergi toate modificările locale? Site-ul revine la data.js din repo.')) return;
     localStorage.removeItem(LS_DATA);
-    DATA = loadData();
-    ensureShapes();
-    fillSettings();
-    renderProducts();
-    renderShapes();
-    updatePreviewPane();
+    DATA = loadData(); ensureShapes();
+    fillSettings(); renderProducts(); renderShapes(); updatePreviewPane();
     toast('Modificări locale șterse.');
   });
 
-  /* ---------- preview ---------- */
   function updatePreviewPane() {
     var name = DATA.settings.customNameDefault || 'NUMELE TĂU';
     var bottom = DATA.settings.customBottomDefault || 'SĂRBĂTORI FERICITE';
-    var b = $('pvBanner');
-    if (b) b.textContent = String(name).toUpperCase();
+    var b = $('pvBanner'); if (b) b.textContent = String(name).toUpperCase();
     var tp = $('pvCurveText') && $('pvCurveText').querySelector('textPath');
     if (tp) tp.textContent = String(bottom).toUpperCase();
   }
