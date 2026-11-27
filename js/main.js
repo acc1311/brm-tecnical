@@ -1,13 +1,12 @@
 /* BRM TECNICAL — js/main.js (complet)
-   Atelier 8 piese · culori Negru / Roșu / Auriu / Alb · previzualizare live
-   comandă cu fișiere (DXF/SVG/PDF/poze) · email Gmail/Yahoo/Outlook · WhatsApp
-   notificare stocare locală. */
+   Atelier 8 piese · prețuri și dimensiuni editabile din admin (settings.shapes)
+   culori Negru / Roșu / Auriu / Alb · comandă cu fișiere · email / WhatsApp. */
 (function () {
   'use strict';
 
   var CFG = {
     email: 'brm_tecnical@yahoo.com',
-    whatsapp: '',    // ex: '40712345678' — gol = butonul nu apare
+    whatsapp: '',// ex: '40712345678' — gol = butonul nu apare
     sendOnline: true,
     courier: 25,
     gift: 25,
@@ -79,7 +78,7 @@
     if (meas.parentNode) meas.parentNode.removeChild(meas);
   }
 
-  /* ===================== FORME + PREȚURI ===================== */
+  /* ===================== FORME + PREȚURI implicite ===================== */
   var SHAPES = [
     { id: 'coronita', label: 'Coroniță', ic: '◍', base: 149, photo: true,
       t1: { label: 'Nume pe banner', def: 'NUMELE TĂU', max: 26 },
@@ -213,7 +212,11 @@
       var f = Math.max(0.3, ((base || 0) / 149) * (mul || 1));
       return Math.round(CORE.matAdd(name) * f);
     },
-    minMul: function (sizes) { var m = 1; sizes.forEach(function (s) { if (s.mul < m) m = s.mul; }); return m; },
+    minMul: function (sizes) {
+      var m = sizes[0] ? sizes[0].mul : 1;
+      sizes.forEach(function (s) { if (s.mul < m) m = s.mul; });
+      return m;
+    },
     from: function (base, sizes) { return Math.round(base * CORE.minMul(sizes)); },
     sizesFor: function (o) {
       if (o.shape) return shapeById(o.shape).sizes;
@@ -303,12 +306,36 @@
   }
   var DATA = loadData(), S = DATA.settings, MAIL = S.email || CFG.email;
   CFG.email = MAIL;
-  if (S.courier != null && !isNaN(+S.courier)) CFG.courier = +S.courier;
-  if (S.gift != null && !isNaN(+S.gift)) CFG.gift = +S.gift;
-  if (S.shapePrices) SHAPES.forEach(function (s) {
-    var v = S.shapePrices[s.id];
-    if (v != null && !isNaN(+v) && +v > 0) s.base = +v;
-  });
+  if (S.courier != null && isFinite(+S.courier)) CFG.courier = Math.max(0, +S.courier);
+  if (S.gift != null && isFinite(+S.gift)) CFG.gift = Math.max(0, +S.gift);
+
+  /* prețuri + dimensiuni din admin (settings.shapes) */
+  (function applyShapeConfig() {
+    var cfg = (S.shapes && typeof S.shapes === 'object') ? S.shapes : {};
+    SHAPES.forEach(function (sh) {
+      var c = cfg[sh.id];
+      if (!c && S.shapePrices && S.shapePrices[sh.id] != null) c = { base: S.shapePrices[sh.id] };
+      if (!c || typeof c !== 'object') return;
+      var base = +c.base;
+      if (isFinite(base) && base > 0) sh.base = base;
+      if (Array.isArray(c.sizes) && c.sizes.length) {
+        var out = [], seen = {};
+        c.sizes.forEach(function (z, i) {
+          if (!z) return;
+          var v = +z.v, mul = +z.mul, label = String(z.label == null ? '' : z.label).trim();
+          if (!isFinite(v) || v <= 0) v = i + 1;
+          if (!isFinite(mul) || mul <= 0) mul = 1;
+          if (!label) label = v + ' cm';
+          if (seen[v]) return;
+          seen[v] = 1;
+          out.push({ v: v, label: label, mul: Math.round(mul * 100) / 100 });
+        });
+        if (out.length) sh.sizes = out.slice(0, 8);
+      }
+    });
+    CORE.sizes = SHAPES[0].sizes;
+  })();
+
   var products = DATA.products || [];
   function $(id) { return document.getElementById(id); }
   function html(id, v) { var e = $(id); if (e && v != null) e.innerHTML = v; }
@@ -378,9 +405,7 @@
   '.at-legal{font-size:12px;color:var(--bm-steel);margin:10px 0 0;line-height:1.5}' +
   '#bmPill{position:fixed;right:18px;bottom:18px;z-index:2147481000;display:none;align-items:center;gap:9px;font-family:Jost,sans-serif;font-size:14px;font-weight:600;color:var(--bm-ivory);cursor:pointer;background:linear-gradient(135deg,var(--bm-steel),var(--bm-ink));border:1px solid rgba(201,162,39,.45);padding:12px 17px;border-radius:999px;box-shadow:0 16px 34px rgba(27,31,35,.35)}' +
   '#bmPill.on{display:flex}#bmPill b{background:var(--bm-brass);color:var(--bm-ink);border-radius:999px;padding:1px 8px;font-size:12.5px}' +
-  '#bmCk{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147480000;max-width:940px;margin:0 auto;display:none;' +
-    'background:linear-gradient(135deg,var(--bm-graphite),var(--bm-ink));color:var(--bm-ivory);border:1px solid rgba(201,162,39,.45);' +
-    'border-radius:12px;padding:15px 18px;box-shadow:0 22px 50px rgba(0,0,0,.42);font-family:Jost,sans-serif}' +
+  '#bmCk{position:fixed;left:16px;right:16px;bottom:16px;z-index:2147480000;max-width:940px;margin:0 auto;display:none;background:linear-gradient(135deg,var(--bm-graphite),var(--bm-ink));color:var(--bm-ivory);border:1px solid rgba(201,162,39,.45);border-radius:12px;padding:15px 18px;box-shadow:0 22px 50px rgba(0,0,0,.42);font-family:Jost,sans-serif}' +
   '#bmCk.on{display:flex;align-items:center;gap:16px;flex-wrap:wrap}' +
   '#bmCk p{margin:0;font-size:13.5px;line-height:1.55;flex:1 1 320px}' +
   '#bmCk a{color:var(--bm-brass)}' +
@@ -636,7 +661,7 @@
   }
 
   /* ===================== ATELIER ===================== */
-  var P = { shape: 'coronita', t1: '', t2: '', material: MATERIALS[0].name, color: 'negru', size: 40 };
+  var P = { shape: 'coronita', t1: '', t2: '', material: MATERIALS[0].name, color: 'negru', size: SHAPES[0].sizes[0].v };
   var atMatKey = '';
   var cust = document.querySelector('.customizer');
   if (cust) {
@@ -680,7 +705,7 @@
     function atSizes() {
       var sh = shapeById(P.shape);
       $('atSize').innerHTML = sh.sizes.map(function (s) {
-        return '<option value="' + s.v + '">' + s.label + ' · ' + CORE.money(sh.base * s.mul) + '</option>';
+        return '<option value="' + s.v + '">' + esc(s.label) + ' · ' + CORE.money(sh.base * s.mul) + '</option>';
       }).join('');
       var found = false;
       sh.sizes.forEach(function (s) { if (s.v === P.size) found = true; });
@@ -959,7 +984,7 @@
       personalizable: cfg ? true : isPers(p),
       preview: !!cfg,
       material: cfg ? cfg.material : MATERIALS[0].name,
-      size: cfg ? cfg.size : 40,
+      size: cfg ? cfg.size : CORE.sizes[Math.min(1, CORE.sizes.length - 1)].v,
       color: cfg ? cfg.color : 'negru',
       qty: 1, gift: false, delivery: 'curier',
       pname: cfg ? (cfg.t1 || sh.t1.def) : (S.customNameDefault || 'NUMELE TĂU'),
@@ -999,7 +1024,7 @@
     if (!O) return;
     var l = CORE.sizesFor(O), ss = $('bmSize'), found = false;
     ss.innerHTML = l.map(function (s) {
-      return '<option value="' + s.v + '">' + s.label + ' · ' + CORE.money(O.base * s.mul) + '</option>';
+      return '<option value="' + s.v + '">' + esc(s.label) + ' · ' + CORE.money(O.base * s.mul) + '</option>';
     }).join('');
     l.forEach(function (s) { if (s.v === O.size) found = true; });
     if (!found) O.size = l[Math.min(1, l.length - 1)].v;
