@@ -1,4 +1,4 @@
-/* BRM TECNICAL — publicat din admin (2026-11-26T12:51:18.980Z) */
+/* BRM TECNICAL — publicat din admin (2026-11-27T12:21:12.707Z) */
 window.BRM_DEFAULT = {
   "settings": {
     "email": "brm_tecnical@yahoo.com",
@@ -196,7 +196,214 @@ window.BRM_DEFAULT = {
     "finalText": "Ornamentul tău pornește de la o schiță și ajunge la tine în câteva zile.",
     "finalBtn": "Personalizează piesa",
     "footerTagline": "Piese personalizate din metal, tăiate la laser.<br>Făcute în Târgu Neamț, județ Neamț.",
-    "orderSubjectPrefix": "Comandă:"
+    "orderSubjectPrefix": "Comandă:",
+    "shapes": {
+      "coronita": {
+        "base": 149,
+        "sizes": [
+          {
+            "v": 30,
+            "label": "Ø 30 cm",
+            "mul": 0.85
+          },
+          {
+            "v": 40,
+            "label": "Ø 40 cm",
+            "mul": 1
+          },
+          {
+            "v": 50,
+            "label": "Ø 50 cm",
+            "mul": 1.25
+          },
+          {
+            "v": 60,
+            "label": "Ø 60 cm",
+            "mul": 1.5
+          }
+        ]
+      },
+      "tablou": {
+        "base": 89,
+        "sizes": [
+          {
+            "v": 30,
+            "label": "30 × 20 cm",
+            "mul": 0.85
+          },
+          {
+            "v": 40,
+            "label": "40 × 27 cm",
+            "mul": 1
+          },
+          {
+            "v": 50,
+            "label": "50 × 33 cm",
+            "mul": 1.3
+          },
+          {
+            "v": 60,
+            "label": "60 × 40 cm",
+            "mul": 1.6
+          }
+        ]
+      },
+      "placuta": {
+        "base": 69,
+        "sizes": [
+          {
+            "v": 20,
+            "label": "20 × 10 cm",
+            "mul": 0.8
+          },
+          {
+            "v": 30,
+            "label": "30 × 15 cm",
+            "mul": 1
+          },
+          {
+            "v": 40,
+            "label": "40 × 20 cm",
+            "mul": 1.35
+          },
+          {
+            "v": 60,
+            "label": "60 × 30 cm",
+            "mul": 1.9
+          }
+        ]
+      },
+      "brad": {
+        "base": 79,
+        "sizes": [
+          {
+            "v": 30,
+            "label": "30 cm înălțime",
+            "mul": 0.85
+          },
+          {
+            "v": 40,
+            "label": "40 cm înălțime",
+            "mul": 1
+          },
+          {
+            "v": 50,
+            "label": "50 cm înălțime",
+            "mul": 1.25
+          },
+          {
+            "v": 60,
+            "label": "60 cm înălțime",
+            "mul": 1.5
+          }
+        ]
+      },
+      "stea": {
+        "base": 49,
+        "sizes": [
+          {
+            "v": 25,
+            "label": "Ø 25 cm",
+            "mul": 0.85
+          },
+          {
+            "v": 35,
+            "label": "Ø 35 cm",
+            "mul": 1
+          },
+          {
+            "v": 45,
+            "label": "Ø 45 cm",
+            "mul": 1.3
+          },
+          {
+            "v": 60,
+            "label": "Ø 60 cm",
+            "mul": 1.7
+          }
+        ]
+      },
+      "inima": {
+        "base": 49,
+        "sizes": [
+          {
+            "v": 25,
+            "label": "25 cm",
+            "mul": 0.85
+          },
+          {
+            "v": 35,
+            "label": "35 cm",
+            "mul": 1
+          },
+          {
+            "v": 45,
+            "label": "45 cm",
+            "mul": 1.3
+          },
+          {
+            "v": 60,
+            "label": "60 cm",
+            "mul": 1.7
+          }
+        ]
+      },
+      "cerc": {
+        "base": 59,
+        "sizes": [
+          {
+            "v": 25,
+            "label": "Ø 25 cm",
+            "mul": 0.85
+          },
+          {
+            "v": 35,
+            "label": "Ø 35 cm",
+            "mul": 1
+          },
+          {
+            "v": 45,
+            "label": "Ø 45 cm",
+            "mul": 1.3
+          },
+          {
+            "v": 60,
+            "label": "Ø 60 cm",
+            "mul": 1.7
+          }
+        ]
+      },
+      "casa": {
+        "base": 99,
+        "sizes": [
+          {
+            "v": 40,
+            "label": "40 × 25 cm",
+            "mul": 0.9
+          },
+          {
+            "v": 50,
+            "label": "50 × 31 cm",
+            "mul": 1
+          },
+          {
+            "v": 60,
+            "label": "60 × 37 cm",
+            "mul": 1.25
+          },
+          {
+            "v": 80,
+            "label": "80 × 50 cm",
+            "mul": 1.7
+          }
+        ]
+      }
+    },
+    "customShapes": {},
+    "courier": 25,
+    "gift": 25,
+    "ordersUrl": "https://script.google.com/macros/s/AKfycbzUvuM3P5eqMybYPTCm8_HJnzyd2lBidjR9glFpR8PyueuDBY1jKXaS07tjWIJD6wyp-g/exec",
+    "ordersKey": ""
   },
   "products": [
     {
