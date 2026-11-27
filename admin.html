@@ -9,6 +9,33 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&family=Saira+Stencil+One&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/admin.css">
+<style>
+.shape-card{background:#fff;border:1px solid var(--line,#E6DAC4);border-radius:12px;padding:16px;margin-bottom:16px}
+.shape-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.shape-head h3{font-family:'Cormorant Garamond',serif;font-size:23px;font-weight:600;margin:0;display:flex;align-items:center;gap:9px}
+.shape-head h3 span{font-size:18px;color:#B87333}
+.shape-from{font-size:13px;color:#5A6268;background:#F4EEE4;border:1px solid #E6DAC4;border-radius:999px;padding:5px 12px}
+.shape-from b{color:#8F2E1B}
+.shape-head .mini{margin-left:auto}
+.sh-base{max-width:340px;margin-bottom:14px}
+.sh-table{width:100%;border-collapse:collapse;margin-bottom:12px}
+.sh-table th{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:#8A6A2C;text-align:left;padding:0 8px 7px;font-weight:600}
+.sh-table td{padding:4px 8px 4px 0;vertical-align:middle}
+.sh-table td:last-child{padding-right:0;text-align:right;width:1%}
+.sh-in{width:100%;font-family:'Jost',sans-serif;font-size:14.5px;color:#2E3438;background:#FFFDF9;
+  border:1px solid #D9C7A3;border-radius:6px;padding:9px 11px;outline:none;box-sizing:border-box}
+.sh-in:focus{border-color:#8F2E1B;box-shadow:0 0 0 3px rgba(143,46,27,.12)}
+.sh-calc{font-size:14px;font-weight:600;color:#8F2E1B;white-space:nowrap}
+.sh-table .mini[disabled]{opacity:.4;cursor:not-allowed}
+.shape-card .row{align-items:center}
+.shape-card .hint{margin:0;flex:1 1 240px}
+@media(max-width:760px){
+  .sh-table thead{display:none}
+  .sh-table tr{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 0;border-bottom:1px dashed #E6DAC4}
+  .sh-table td{padding:0}
+  .sh-table td:last-child{grid-column:span 2;text-align:left;width:auto}
+}
+</style>
 </head>
 <body>
 
@@ -17,7 +44,7 @@
   <div class="login-card">
     <div class="logo"><span class="logo-mark">BRM</span><span class="logo-txt">TECNICAL · admin</span></div>
     <h1>Panou de administrare</h1>
-    <p class="muted">Introdu parola pentru a edita textele, prețurile și produsele.</p>
+    <p class="muted">Introdu parola pentru a edita textele, prețurile, produsele și piesele din atelier.</p>
     <form id="loginForm">
       <label class="fld">
         <span>Parolă</span>
@@ -38,6 +65,7 @@
     <nav class="tabs" id="tabs">
       <button class="tab is-on" data-tab="settings">Setări</button>
       <button class="tab" data-tab="products">Produse &amp; prețuri</button>
+      <button class="tab" data-tab="shapes">Atelier · forme</button>
       <button class="tab" data-tab="preview">Previzualizare</button>
     </nav>
     <div class="top-r">
@@ -105,6 +133,30 @@
         </div>
       </div>
       <div class="prod-list" id="prodList"><!-- din JS --></div>
+    </section>
+
+    <!-- ATELIER: FORME -->
+    <section class="pane" id="pane-shapes">
+      <div class="pane-head">
+        <h2>Atelier · forme, prețuri și dimensiuni</h2>
+        <div class="pane-actions">
+          <button class="btn-sm ghost" id="btnResetShapes">Resetează toate formele</button>
+          <button class="btn-sm" id="btnSaveShapes">Salvează atelierul</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <label class="fld"><span>Cost livrare curier (lei)</span><input type="number" min="0" step="1" id="s_courier"></label>
+        <label class="fld"><span>Ambalaj cadou (lei)</span><input type="number" min="0" step="1" id="s_gift"></label>
+      </div>
+      <p class="hint">Prețul de bază este pentru dimensiunea cu multiplicatorul ×1. Celelalte dimensiuni înmulțesc prețul de bază cu multiplicatorul lor. Eticheta apare în site exact cum o scrii aici.</p>
+
+      <div id="shapeList"><!-- din JS --></div>
+
+      <div class="row">
+        <button class="btn-sm" id="btnPublish2">☁ Publică online</button>
+      </div>
+      <p class="hint">După ce modifici prețurile sau dimensiunile, apasă „Publică online” ca să se vadă pentru vizitatori.</p>
     </section>
 
     <!-- PREVIZUALIZARE -->
